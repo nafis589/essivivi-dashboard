@@ -46,7 +46,7 @@ export function TableCards() {
         </CardContent>
       </Card>
 
-      <UserModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <UserModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} type="client" mode="create" />
     </div>
   );
 }

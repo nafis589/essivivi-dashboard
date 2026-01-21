@@ -11,12 +11,21 @@ import {
 interface UserModalProps {
     isOpen: boolean;
     onClose: () => void;
+    type?: 'agent' | 'client';
+    mode?: 'create' | 'edit';
+    initialData?: any;
 }
 
-const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose }) => {
+const UserModal: React.FC<UserModalProps> = ({
+    isOpen,
+    onClose,
+    type = 'agent',
+    mode = 'create',
+    initialData
+}) => {
     const [generalInfoOpen, setGeneralInfoOpen] = useState(true);
     const [additionalInfoOpen, setAdditionalInfoOpen] = useState(false);
-    const [statusActive, setStatusActive] = useState(false);
+    const [statusActive, setStatusActive] = useState(initialData?.status === 'Actif' || false);
     const [fileName, setFileName] = useState('Aucun fichier n\'a été sélectionné');
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -40,7 +49,9 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose }) => {
             >
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: '#f4f4f5' }}>
-                    <h2 className="text-xl font-bold text-gray-900">Add new user</h2>
+                    <h2 className="text-xl font-bold text-gray-900">
+                        {mode === 'create' ? 'Ajouter' : 'Modifier'} {type === 'agent' ? 'un agent' : 'un client'}
+                    </h2>
                     <button
                         onClick={onClose}
                         className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
@@ -58,142 +69,180 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose }) => {
                             onClick={() => setGeneralInfoOpen(!generalInfoOpen)}
                             className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-gray-50 transition-colors"
                         >
-                            <span className="font-semibold text-gray-700">General Information</span>
+                            <span className="font-semibold text-gray-700">Informations Générales</span>
                             {generalInfoOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                         </button>
 
                         {generalInfoOpen && (
                             <div className="px-6 pb-6 space-y-6">
 
-                                {/* Avatar Upload */}
-                                <div className="space-y-3">
-                                    <label className="block text-sm font-semibold text-gray-700">Upload avatar</label>
-                                    <div className="flex items-center gap-4">
-                                        <div className="relative w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center overflow-hidden border" style={{ borderColor: '#fbfbfb' }}>
-                                            <img
-                                                src="https://picsum.photos/seed/avatar/200"
-                                                alt="Preview"
-                                                className="w-full h-full object-cover"
-                                            />
-                                        </div>
-                                        <div className="flex-1">
-                                            <div
-                                                className="flex items-center rounded-lg border overflow-hidden"
-                                                style={{ borderColor: '#fbfbfb' }}
-                                            >
-                                                <button
-                                                    onClick={triggerFileInput}
-                                                    className="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium border-r hover:bg-gray-200 transition-colors"
-                                                    style={{ borderColor: '#fbfbfb', backgroundColor: '#f4f4f4' }}
-                                                >
-                                                    Choisir un fichier
-                                                </button>
-                                                <div className="px-4 py-2 text-sm text-gray-500 truncate bg-white flex-1">
-                                                    {fileName}
+                                {type === 'agent' ? (
+                                    <>
+                                        {/* Agent Fields */}
+                                        {/* Avatar Upload */}
+                                        <div className="space-y-3">
+                                            <label className="block text-sm font-semibold text-gray-700">Photo de profil</label>
+                                            <div className="flex items-center gap-4">
+                                                <div className="relative w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center overflow-hidden border" style={{ borderColor: '#fbfbfb' }}>
+                                                    <img
+                                                        src={initialData?.avatar || "https://picsum.photos/seed/avatar/200"}
+                                                        alt="Preview"
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                </div>
+                                                <div className="flex-1">
+                                                    <div
+                                                        className="flex items-center rounded-lg border overflow-hidden"
+                                                        style={{ borderColor: '#fbfbfb' }}
+                                                    >
+                                                        <button
+                                                            onClick={triggerFileInput}
+                                                            className="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium border-r hover:bg-gray-200 transition-colors"
+                                                            style={{ borderColor: '#fbfbfb', backgroundColor: '#f4f4f4' }}
+                                                        >
+                                                            Choisir un fichier
+                                                        </button>
+                                                        <div className="px-4 py-2 text-sm text-gray-500 truncate bg-white flex-1">
+                                                            {fileName}
+                                                        </div>
+                                                    </div>
+                                                    <p className="mt-1 text-xs text-gray-400">SVG, PNG, JPG or GIF (MAX. 800x400px).</p>
+                                                    <input
+                                                        type="file"
+                                                        ref={fileInputRef}
+                                                        onChange={handleFileChange}
+                                                        className="hidden"
+                                                        accept="image/*"
+                                                    />
                                                 </div>
                                             </div>
-                                            <p className="mt-1 text-xs text-gray-400">SVG, PNG, JPG or GIF (MAX. 800x400px).</p>
-                                            <input
-                                                type="file"
-                                                ref={fileInputRef}
-                                                onChange={handleFileChange}
-                                                className="hidden"
-                                                accept="image/*"
-                                            />
                                         </div>
-                                    </div>
-                                </div>
 
-                                {/* Name Fields */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <FormField label="First Name" placeholder="John" />
-                                    <FormField label="Last Name" placeholder="Doe" />
-                                </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <FormField label="Numéro d'identification (Auto)" placeholder="AGT-001" value={initialData?.id || "Auto-généré"} disabled />
+                                            <FormField label="Nom et Prénom" placeholder="Jean Dupont" value={initialData?.name} />
+                                        </div>
 
-                                {/* Email & Permissions */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <FormField label="Email" placeholder="name@company.com" type="email" />
-                                    <div className="space-y-1.5">
-                                        <label className="flex items-center gap-1.5 text-sm font-semibold text-gray-700">
-                                            User Permissions <Info size={14} className="text-gray-400" />
-                                        </label>
-                                        <select
-                                            className="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                                            style={{ backgroundColor: '#f4f4f4', borderColor: '#a0a8b4' }}
-                                        >
-                                            <option>Super admin</option>
-                                            <option>Gestionnaire</option>
-                                            <option>Superviseur</option>
-                                        </select>
-                                    </div>
-                                </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <FormField label="Email" placeholder="jean.dupont@essivivi.com" type="email" value={initialData?.email} />
+                                            <FormField label="Numéro de téléphone" placeholder="+228 90 00 00 00" value={initialData?.phoneNumber} />
+                                        </div>
 
-                                {/* Job Title & Languages */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <FormField label="Job Title" placeholder="e.g React Native Developer" />
-                                    <FormField label="Languages" placeholder="e.g English" />
-                                </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <FormField label="Date de naissance" type="date" value={initialData?.birthDate} />
+                                            <FormField label="Date d'embauche" type="date" value={initialData?.hireDate} />
+                                        </div>
 
-                                {/* Account & Role */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="space-y-1.5">
-                                        <label className="flex items-center gap-1.5 text-sm font-semibold text-gray-700">
-                                            Account <Info size={14} className="text-gray-400" />
-                                        </label>
-                                        <select
-                                            className="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                                            style={{ backgroundColor: '#f4f4f4', borderColor: '#a0a8b4' }}
-                                        >
-                                            <option>Choose account type</option>
-                                            <option>Personal</option>
-                                            <option>Business</option>
-                                        </select>
-                                    </div>
-                                    <div className="space-y-1.5">
-                                        <label className="flex items-center gap-1.5 text-sm font-semibold text-gray-700">
-                                            User Role <Info size={14} className="text-gray-400" />
-                                        </label>
-                                        <select
-                                            className="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                                            style={{ backgroundColor: '#f4f4f4', borderColor: '#a0a8b4' }}
-                                        >
-                                            <option>Owner</option>
-                                            <option>Editor</option>
-                                            <option>Viewer</option>
-                                        </select>
-                                    </div>
-                                </div>
+                                        <FormField label="Adresse" placeholder="Lomé, Togo" value={initialData?.address} />
 
-                                {/* Email Status */}
-                                <div className="space-y-1.5">
-                                    <label className="flex items-center gap-1.5 text-sm font-semibold text-gray-700">
-                                        Email Status <Info size={14} className="text-gray-400" />
-                                    </label>
-                                    <select
-                                        className="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                                        style={{ backgroundColor: '#f4f4f4', borderColor: '#a0a8b4' }}
-                                    >
-                                        <option>Not verified</option>
-                                        <option>Verified</option>
-                                        <option>Pending</option>
-                                    </select>
-                                </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="space-y-1.5">
+                                                <label className="flex items-center gap-1.5 text-sm font-semibold text-gray-700">
+                                                    Tricycle Assigné
+                                                </label>
+                                                <select
+                                                    className="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                                                    style={{ backgroundColor: '#f4f4f4', borderColor: '#a0a8b4' }}
+                                                    defaultValue={initialData?.tricycle || ""}
+                                                >
+                                                    <option value="">Sélectionner un tricycle</option>
+                                                    <option value="TRI-001">TRI-001</option>
+                                                    <option value="TRI-002">TRI-002</option>
+                                                </select>
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="flex items-center gap-1.5 text-sm font-semibold text-gray-700">
+                                                    Niveau d'accès
+                                                </label>
+                                                <select
+                                                    className="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                                                    style={{ backgroundColor: '#f4f4f4', borderColor: '#a0a8b4' }}
+                                                    defaultValue={initialData?.accessLevel || "Superviseur"}
+                                                >
+                                                    <option>Super Admin</option>
+                                                    <option>Gestionnaire</option>
+                                                    <option>Superviseur</option>
+                                                </select>
+                                            </div>
+                                        </div>
 
-                                {/* Password Fields */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <FormField label="Password" placeholder="••••••••" type="password" />
-                                    <FormField label="Confirm password" placeholder="••••••••" type="password" />
-                                </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <FormField label="Identifiant de connexion" placeholder="jdupont" value={initialData?.username} />
+                                            <FormField label="Mot de passe" placeholder="••••••••" type="password" />
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                        {/* Client Fields */}
+                                        {/* POS Photo */}
+                                        <div className="space-y-3">
+                                            <label className="block text-sm font-semibold text-gray-700">Photo du point de vente</label>
+                                            <div className="flex items-center gap-4">
+                                                <div className="relative w-20 h-20 bg-gray-100 flex items-center justify-center overflow-hidden border rounded-lg" style={{ borderColor: '#fbfbfb' }}>
+                                                    <img
+                                                        src={initialData?.avatar || "https://picsum.photos/seed/pos/200"}
+                                                        alt="Preview"
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                </div>
+                                                <div className="flex-1">
+                                                    <div
+                                                        className="flex items-center rounded-lg border overflow-hidden"
+                                                        style={{ borderColor: '#fbfbfb' }}
+                                                    >
+                                                        <button
+                                                            onClick={triggerFileInput}
+                                                            className="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium border-r hover:bg-gray-200 transition-colors"
+                                                            style={{ borderColor: '#fbfbfb', backgroundColor: '#f4f4f4' }}
+                                                        >
+                                                            Choisir un fichier
+                                                        </button>
+                                                        <div className="px-4 py-2 text-sm text-gray-500 truncate bg-white flex-1">
+                                                            {fileName}
+                                                        </div>
+                                                    </div>
+                                                    <input
+                                                        type="file"
+                                                        ref={fileInputRef}
+                                                        onChange={handleFileChange}
+                                                        className="hidden"
+                                                        accept="image/*"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
 
-                                {/* Assign Role */}
-                                <div className="space-y-3">
-                                    <label className="block text-sm font-semibold text-gray-700">Assign Role</label>
-                                    <div className="flex flex-wrap gap-6">
-                                        <Checkbox label="Administrator" id="admin" />
-                                        <Checkbox label="Member" id="member" />
-                                        <Checkbox label="Viewer" id="viewer" checked />
-                                    </div>
-                                </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <FormField label="Nom du point de vente" placeholder="Boutique Essivivi" value={initialData?.posName} />
+                                            <FormField label="Nom du responsable" placeholder="Jean Responsable" value={initialData?.manager} />
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <FormField label="Numéro de téléphone" placeholder="+228 90 00 00 00" value={initialData?.phoneNumber} />
+                                            <FormField label="Email (Optionnel)" placeholder="client@example.com" type="email" value={initialData?.email} />
+                                        </div>
+
+                                        <FormField label="Adresse complète" placeholder="Quartier, Rue, Ville" value={initialData?.address} />
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <FormField label="Coordonnées GPS" placeholder="6.1234, 1.2345" value={initialData?.gpsCoordinates} />
+                                            <div className="space-y-1.5">
+                                                <label className="flex items-center gap-1.5 text-sm font-semibold text-gray-700">
+                                                    Type de client
+                                                </label>
+                                                <select
+                                                    className="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                                                    style={{ backgroundColor: '#f4f4f4', borderColor: '#a0a8b4' }}
+                                                    defaultValue={initialData?.clientType || "Détaillant"}
+                                                >
+                                                    <option>Détaillant</option>
+                                                    <option>Grossiste</option>
+                                                    <option>Institution</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
 
                                 {/* Status Toggle */}
                                 <div className="space-y-3">
@@ -207,7 +256,7 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose }) => {
                                                 className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${statusActive ? 'translate-x-6' : 'translate-x-1'}`}
                                             />
                                         </button>
-                                        <span className="text-sm font-medium text-gray-700">{statusActive ? 'Active' : 'Inactive'}</span>
+                                        <span className="text-sm font-medium text-gray-700">{statusActive ? 'Actif' : 'Inactif'}</span>
                                     </div>
                                 </div>
 
@@ -221,12 +270,12 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose }) => {
                             onClick={() => setAdditionalInfoOpen(!additionalInfoOpen)}
                             className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-gray-50 transition-colors"
                         >
-                            <span className="font-semibold text-gray-700">Additional Information</span>
+                            <span className="font-semibold text-gray-700">Informations Supplémentaires</span>
                             {additionalInfoOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                         </button>
                         {additionalInfoOpen && (
                             <div className="px-6 pb-6">
-                                <p className="text-sm text-gray-500">More details can be added here...</p>
+                                <p className="text-sm text-gray-500">Plus de détails ici...</p>
                             </div>
                         )}
                     </div>
@@ -240,14 +289,14 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose }) => {
                         className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
                     >
                         <Plus size={18} />
-                        Add new user
+                        {mode === 'create' ? 'Ajouter' : 'Enregistrer'}
                     </button>
                     <button
                         onClick={onClose}
                         className="flex-1 py-2.5 text-white font-semibold rounded-lg hover:bg-gray-700 transition-colors border"
                         style={{ backgroundColor: '#1e293b', borderColor: '#1e293b' }}
                     >
-                        Discard
+                        Annuler
                     </button>
                 </div>
             </div>
@@ -259,18 +308,22 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose }) => {
 
 interface FormFieldProps {
     label: string;
-    placeholder: string;
+    placeholder?: string;
     type?: string;
+    value?: string;
+    disabled?: boolean;
 }
 
-const FormField: React.FC<FormFieldProps> = ({ label, placeholder, type = "text" }) => (
+const FormField: React.FC<FormFieldProps> = ({ label, placeholder, type = "text", value, disabled }) => (
     <div className="space-y-1.5">
         <label className="block text-sm font-semibold text-gray-700">{label}</label>
         <input
             type={type}
             placeholder={placeholder}
-            className="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-all text-gray-900 placeholder:text-gray-400"
-            style={{ backgroundColor: '#f4f4f4', borderColor: '#a0a8b4' }}
+            defaultValue={value}
+            disabled={disabled}
+            className="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-all text-gray-900 placeholder:text-gray-400 disabled:bg-gray-200 disabled:text-gray-500"
+            style={{ backgroundColor: disabled ? '#e5e7eb' : '#f4f4f4', borderColor: '#a0a8b4' }}
         />
     </div>
 );

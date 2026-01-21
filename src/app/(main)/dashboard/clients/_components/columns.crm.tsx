@@ -1,20 +1,13 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { EllipsisVertical } from "lucide-react";
 import type z from "zod";
 
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-
 import type { clientSchema } from "./schema";
+
+import { ClientActions } from "./client-actions";
 
 export const clientsColumns: ColumnDef<z.infer<typeof clientSchema>>[] = [
   {
@@ -86,21 +79,7 @@ export const clientsColumns: ColumnDef<z.infer<typeof clientSchema>>[] = [
   },
   {
     id: "actions",
-    cell: () => (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="flex size-8 text-muted-foreground" size="icon">
-            <EllipsisVertical />
-            <span className="sr-only">Open menu</span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem>Voir</DropdownMenuItem>
-          <DropdownMenuItem>Modifier</DropdownMenuItem>
-          <DropdownMenuItem className="text-destructive">Désactiver</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    ),
+    cell: ({ row }) => <ClientActions row={row} />,
     enableSorting: false,
   },
 ];
