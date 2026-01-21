@@ -1,0 +1,55 @@
+import type { clientSchema } from "./schema";
+import type z from "zod";
+
+export const clientsData: z.infer<typeof clientSchema>[] = [
+  {
+    clientCode: "CLT-1001",
+    posName: "Boutique Alpha",
+    manager: "Koffi Akpo",
+    phoneNumber: "90 12 34 56",
+    address: "Lomé, Quartier Adidogomé",
+    gpsCoordinates: "6.1366, 1.2222",
+    registrationDate: "12/01/2024",
+    status: "Actif",
+  },
+  {
+    clientCode: "CLT-1002",
+    posName: "Supermarché Délice",
+    manager: "Afi Mensah",
+    phoneNumber: "91 98 76 54",
+    address: "Kpalimé, Centre ville",
+    gpsCoordinates: "6.9066, 0.6314",
+    registrationDate: "15/02/2024",
+    status: "Actif",
+  },
+  {
+    clientCode: "CLT-1003",
+    posName: "Kiosque Espoir",
+    manager: "Kodjo T",
+    phoneNumber: "92 55 44 33",
+    address: "Lomé, Bè",
+    gpsCoordinates: "6.1256, 1.2543",
+    registrationDate: "05/11/2023",
+    status: "Inactif",
+  },
+  {
+    clientCode: "CLT-1004",
+    posName: "Pharmacie Verte",
+    manager: "Dr. Kossi",
+    phoneNumber: "99 11 22 33",
+    address: "Atakpamé",
+    gpsCoordinates: "7.5298, 1.1306",
+    registrationDate: "10/03/2024",
+    status: "Actif",
+  },
+  {
+    clientCode: "CLT-1005",
+    posName: "Maquis Le Goût",
+    manager: "Fati",
+    phoneNumber: "93 33 22 11",
+    address: "Sokodé",
+    gpsCoordinates: "8.9833, 1.1333",
+    registrationDate: "20/12/2023",
+    status: "Inactif",
+  },
+];

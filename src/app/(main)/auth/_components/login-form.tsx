@@ -1,5 +1,7 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -26,14 +28,25 @@ export function LoginForm() {
     },
   });
 
+  const router = useRouter();
+
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
-    toast("You submitted the following values", {
-      description: (
-        <pre className="mt-2 w-[320px] rounded-md bg-neutral-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
+    // Simulate login delay
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    const mockUser = {
+      name: "Admin User",
+      email: data.email,
+      role: "SUPER_ADMIN",
+    };
+
+    localStorage.setItem("user", JSON.stringify(mockUser));
+
+    toast("Connexion réussie", {
+      description: "Bienvenue sur le dashboard ESSIVI.",
     });
+
+    router.push("/dashboard/default");
   };
 
   return (
