@@ -1,53 +1,32 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-import { CardOverview } from "./_components/card-overview";
-import { CashFlowOverview } from "./_components/cash-flow-overview";
-import { IncomeReliability } from "./_components/income-reliability";
-import { MonthlyCashFlow } from "./_components/kpis/monthly-cash-flow";
-import { NetWorth } from "./_components/kpis/net-worth";
-import { PrimaryAccount } from "./_components/kpis/primary-account";
-import { SavingsRate } from "./_components/kpis/savings-rate";
-import { SpendingBreakdown } from "./_components/spending-breakdown";
+import { ProductionReports } from "./_components/production-reports";
+import { StatisticalAnalysis } from "./_components/statistical-analysis";
+import { FinancialReports } from "./_components/financial-reports";
 
 export default function Page() {
   return (
-    <div>
-      <Tabs className="gap-4" defaultValue="overview">
+    <div className="flex flex-col gap-4 md:gap-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold tracking-tight">Statistiques & Rapports</h1>
+      </div>
+
+      <Tabs className="gap-4" defaultValue="production">
         <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger disabled value="activity">
-            Activity
-          </TabsTrigger>
-          <TabsTrigger disabled value="insights">
-            Insights
-          </TabsTrigger>
-          <TabsTrigger disabled value="utilities">
-            Utilities
-          </TabsTrigger>
+          <TabsTrigger value="production">Rapports de Production</TabsTrigger>
+          <TabsTrigger value="analytics">Analyses Statistiques</TabsTrigger>
+          <TabsTrigger value="financial">Rapports Financiers</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview">
-          <div className="flex flex-col gap-4 **:data-[slot=card]:shadow-xs">
-            <div className="grid grid-cols-1 gap-4 *:data-[slot=card]:gap-2 *:data-[slot=card]:bg-linear-to-t *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4">
-              <PrimaryAccount />
-              <NetWorth />
-              <MonthlyCashFlow />
-              <SavingsRate />
-            </div>
+        <TabsContent value="production" className="space-y-4">
+          <ProductionReports />
+        </TabsContent>
 
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
-              <div className="flex flex-col gap-4">
-                <CashFlowOverview />
+        <TabsContent value="analytics" className="space-y-4">
+          <StatisticalAnalysis />
+        </TabsContent>
 
-                <div className="grid h-full grid-cols-1 gap-4 lg:grid-cols-2">
-                  <SpendingBreakdown />
-                  <IncomeReliability />
-                </div>
-              </div>
-
-              <CardOverview />
-            </div>
-          </div>
+        <TabsContent value="financial" className="space-y-4">
+          <FinancialReports />
         </TabsContent>
       </Tabs>
     </div>
