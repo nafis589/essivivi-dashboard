@@ -57,27 +57,36 @@ export interface FinancialStats {
 export const statsService = {
     getDashboardStats: async () => {
         const response = await apiClient.get<DashboardStats>("/dashboard/stats/");
-        return response.data;
+        console.log("getDashboardStats response:", response);
+        // Handle case where data might be nested in 'data' or 'stats' or 'results'
+        const data = (response.data as any)?.data ?? (response.data as any)?.stats ?? response.data;
+        return data;
     },
 
     getProductionStats: async (period: number = 30) => {
         const response = await apiClient.get<ProductionStats>("/dashboard/production/", {
             params: { period },
         });
-        return response.data;
+        console.log("getProductionStats response:", response);
+        const data = (response.data as any)?.data ?? response.data;
+        return data;
     },
 
     getAgentPerformance: async (limit: number = 10) => {
         const response = await apiClient.get("/dashboard/performance-agents/", {
             params: { limit },
         });
-        return (response.data as any)?.results ?? response.data;
+        console.log("getAgentPerformance response:", response);
+        // Handle DRF pagination (results) or standard wrapped response
+        return (response.data as any)?.results ?? (response.data as any)?.data ?? response.data;
     },
 
     getFinancialReports: async (period: "daily" | "monthly" = "daily") => {
         const response = await apiClient.get<FinancialStats>("/dashboard/financial/", {
             params: { period },
         });
-        return response.data;
+        console.log("getFinancialReports response:", response);
+        const data = (response.data as any)?.data ?? response.data;
+        return data;
     },
 };

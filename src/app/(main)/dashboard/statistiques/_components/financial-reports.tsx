@@ -4,20 +4,31 @@ import * as React from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 import { statsService } from "@/services/stats.service";
 import type { FinancialStats } from "@/services/stats.service";
 
 export function FinancialReports() {
     const [financialStats, setFinancialStats] = React.useState<FinancialStats | null>(null);
     const [loading, setLoading] = React.useState(true);
+    const [error, setError] = React.useState<string | null>(null);
 
     const fetchData = React.useCallback(async () => {
         try {
             setLoading(true);
+            setError(null);
             const data = await statsService.getFinancialReports("daily");
-            setFinancialStats(data);
+            if (data) {
+                setFinancialStats(data);
+            } else {
+                console.warn("Financial reports data is empty or null");
+                // Don't necessarily set error here if empty data is valid, 
+                // but typically we expect an object.
+            }
         } catch (error) {
             console.error("Failed to fetch financial reports", error);
+            setError("Impossible de charger les rapports financiers. Veuillez réessayer plus tard.");
         } finally {
             setLoading(false);
         }
@@ -48,6 +59,14 @@ export function FinancialReports() {
 
     return (
         <div className="flex flex-col gap-4">
+            {error && (
+                <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Erreur</AlertTitle>
+                    <AlertDescription>{error}</AlertDescription>
+                </Alert>
+            )}
+
             <div className="grid gap-4 md:grid-cols-2">
                 <Card>
                     <CardHeader>

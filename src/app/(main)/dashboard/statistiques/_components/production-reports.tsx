@@ -4,7 +4,8 @@ import * as React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Package, TrendingUp, Users } from "lucide-react";
+import { Package, TrendingUp, Users, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { statsService } from "@/services/stats.service";
 import type { DashboardStats, AgentPerformance } from "@/services/stats.service";
 
@@ -12,28 +13,42 @@ export function ProductionReports() {
     const [stats, setStats] = React.useState<DashboardStats | null>(null);
     const [agents, setAgents] = React.useState<AgentPerformance[]>([]);
     const [loading, setLoading] = React.useState(true);
+    const [error, setError] = React.useState<string | null>(null);
 
     const fetchData = React.useCallback(async () => {
         try {
             setLoading(true);
+            setError(null);
             const results = await Promise.allSettled([
                 statsService.getDashboardStats(),
                 statsService.getAgentPerformance()
             ]);
 
+            console.log("ProductionReports Data:", results);
+            let hasError = false;
+
             if (results[0].status === "fulfilled") {
+                console.log("Stats Data Fulfilled:", results[0].value);
                 setStats(results[0].value);
             } else {
                 console.error("Failed to fetch dashboard stats", results[0].reason);
+                hasError = true;
             }
 
             if (results[1].status === "fulfilled") {
+                console.log("Agents Data Fulfilled:", results[1].value);
                 setAgents(results[1].value);
             } else {
                 console.error("Failed to fetch agent performance", results[1].reason);
+                hasError = true;
+            }
+
+            if (hasError) {
+                setError("Certaines données n'ont pas pu être récupérées du serveur.");
             }
         } catch (error) {
             console.error("Unexpected error in production reports fetch", error);
+            setError("Une erreur inattendue s'est produite lors du chargement des rapports.");
         } finally {
             setLoading(false);
         }
@@ -49,6 +64,14 @@ export function ProductionReports() {
 
     return (
         <div className="flex flex-col gap-4">
+            {error && (
+                <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Erreur</AlertTitle>
+                    <AlertDescription>{error}</AlertDescription>
+                </Alert>
+            )}
+
             <div className="grid gap-4 md:grid-cols-3">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
