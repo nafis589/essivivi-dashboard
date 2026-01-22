@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useDataTableInstance } from "@/hooks/use-data-table-instance";
 import { columns } from "./columns";
 import { adminUsersData } from "./data";
-import AdminUserModal from "./admin-user-modal";
+import { AdminUserDrawer } from "./admin-user-drawer";
 
 export function TableCards() {
   const table = useDataTableInstance({
@@ -43,9 +43,9 @@ export function TableCards() {
         <DataTablePagination table={table} />
       </CardContent>
 
-      <AdminUserModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
+      <AdminUserDrawer
+        open={isCreateModalOpen}
+        onOpenChange={setIsCreateModalOpen}
         mode="create"
       />
     </Card>

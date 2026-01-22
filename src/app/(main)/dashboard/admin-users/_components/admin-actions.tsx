@@ -12,7 +12,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import AdminUserModal from "./admin-user-modal";
+import { AdminUserDrawer } from "./admin-user-drawer";
 import type { AdminUser } from "./schema";
 
 interface AdminActionsProps {
@@ -38,9 +38,9 @@ export function AdminActions({ row }: AdminActionsProps) {
                 </DropdownMenuContent>
             </DropdownMenu>
 
-            <AdminUserModal
-                isOpen={isEditModalOpen}
-                onClose={() => setIsEditModalOpen(false)}
+            <AdminUserDrawer
+                open={isEditModalOpen}
+                onOpenChange={setIsEditModalOpen}
                 mode="edit"
                 initialData={user}
             />
