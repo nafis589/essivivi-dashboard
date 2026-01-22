@@ -1,10 +1,12 @@
 import z from "zod";
 
-export const recentLeadSchema = z.object({
+export const adminUserSchema = z.object({
   id: z.string(),
   name: z.string(),
-  company: z.string(),
-  status: z.string(),
-  source: z.string(),
-  lastActivity: z.string(),
+  email: z.string().email(),
+  role: z.enum(["Super Admin", "Gestionnaire", "Superviseur"]),
+  status: z.enum(["Actif", "Inactif"]),
+  lastConnection: z.string(),
 });
+
+export type AdminUser = z.infer<typeof adminUserSchema>;

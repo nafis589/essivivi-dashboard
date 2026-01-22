@@ -1,48 +1,53 @@
 "use client";
-"use no memo";
 
-import { Download } from "lucide-react";
-
+import * as React from "react";
+import { Plus } from "lucide-react";
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
 import { DataTableViewOptions } from "@/components/data-table/data-table-view-options";
 import { Button } from "@/components/ui/button";
-import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDataTableInstance } from "@/hooks/use-data-table-instance";
-
-import { recentLeadsColumns } from "./columns.crm";
-import { recentLeadsData } from "./crm.config";
+import { columns } from "./columns";
+import { adminUsersData } from "./data";
+import AdminUserModal from "./admin-user-modal";
 
 export function TableCards() {
   const table = useDataTableInstance({
-    data: recentLeadsData,
-    columns: recentLeadsColumns,
-    getRowId: (row) => row.id.toString(),
+    data: adminUsersData,
+    columns,
+    getRowId: (row) => row.id,
   });
 
+  const [isCreateModalOpen, setIsCreateModalOpen] = React.useState(false);
+
   return (
-    <div className="grid grid-cols-1 gap-4 *:data-[slot=card]:shadow-xs">
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Leads</CardTitle>
-          <CardDescription>Track and manage your latest leads and their status.</CardDescription>
-          <CardAction>
-            <div className="flex items-center gap-2">
-              <DataTableViewOptions table={table} />
-              <Button variant="outline" size="sm">
-                <Download />
-                <span className="hidden lg:inline">Export</span>
-              </Button>
-            </div>
-          </CardAction>
-        </CardHeader>
-        <CardContent className="flex size-full flex-col gap-4">
-          <div className="overflow-hidden rounded-md border">
-            <DataTable table={table} columns={recentLeadsColumns} />
-          </div>
-          <DataTablePagination table={table} />
-        </CardContent>
-      </Card>
-    </div>
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between gap-4 space-y-0 pb-6">
+        <div className="flex flex-col gap-1.5">
+          <CardTitle>Utilisateurs Admin</CardTitle>
+          <CardDescription>Gérez les administrateurs et leurs rôles.</CardDescription>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button onClick={() => setIsCreateModalOpen(true)} className="gap-2">
+            <Plus size={16} />
+            Ajouter admin
+          </Button>
+          <DataTableViewOptions table={table} />
+        </div>
+      </CardHeader>
+      <CardContent className="flex w-full max-w-full flex-col gap-4">
+        <div className="overflow-x-auto rounded-md border w-full max-w-full">
+          <DataTable table={table} columns={columns} />
+        </div>
+        <DataTablePagination table={table} />
+      </CardContent>
+
+      <AdminUserModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        mode="create"
+      />
+    </Card>
   );
 }
