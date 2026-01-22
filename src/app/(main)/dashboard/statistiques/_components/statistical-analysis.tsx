@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import { TrendingUp } from "lucide-react";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
@@ -17,15 +18,8 @@ import {
     ChartTooltip,
     ChartTooltipContent,
 } from "@/components/ui/chart";
-
-const revenueData = [
-    { month: "Jan", revenue: 1500000 },
-    { month: "Feb", revenue: 2300000 },
-    { month: "Mar", revenue: 1800000 },
-    { month: "Apr", revenue: 3200000 },
-    { month: "May", revenue: 2900000 },
-    { month: "Jun", revenue: 4500000 },
-];
+import { statsService } from "@/services/stats.service";
+import type { ProductionStats, FinancialStats } from "@/services/stats.service";
 
 const revenueConfig = {
     revenue: {
@@ -34,29 +28,12 @@ const revenueConfig = {
     },
 } satisfies ChartConfig;
 
-const peakHoursData = [
-    { hour: "08h", sales: 40 },
-    { hour: "10h", sales: 80 },
-    { hour: "12h", sales: 120 },
-    { hour: "14h", sales: 90 },
-    { hour: "16h", sales: 110 },
-    { hour: "18h", sales: 60 },
-];
-
 const peakHoursConfig = {
     sales: {
         label: "Ventes",
         color: "hsl(var(--chart-2))",
     },
 } satisfies ChartConfig;
-
-const topZonesData = [
-    { zone: "Adidogomé", value: 450 },
-    { zone: "Bè", value: 380 },
-    { zone: "Agoè", value: 320 },
-    { zone: "Tokoin", value: 290 },
-    { zone: "Kodjoviakopé", value: 210 },
-];
 
 const topZonesConfig = {
     value: {
@@ -66,13 +43,59 @@ const topZonesConfig = {
 } satisfies ChartConfig;
 
 export function StatisticalAnalysis() {
+    const [productionStats, setProductionStats] = React.useState<ProductionStats | null>(null);
+    const [financialStats, setFinancialStats] = React.useState<FinancialStats | null>(null);
+    const [loading, setLoading] = React.useState(true);
+
+    const fetchData = React.useCallback(async () => {
+        try {
+            setLoading(true);
+            const results = await Promise.allSettled([
+                statsService.getProductionStats(30),
+                statsService.getFinancialReports("daily")
+            ]);
+
+            if (results[0].status === "fulfilled") {
+                setProductionStats(results[0].value);
+            } else {
+                console.error("Failed to fetch production stats", results[0].reason);
+            }
+
+            if (results[1].status === "fulfilled") {
+                setFinancialStats(results[1].value);
+            } else {
+                console.error("Failed to fetch financial reports", results[1].reason);
+            }
+        } catch (error) {
+            console.error("Unexpected error in statistical analysis fetch", error);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    React.useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
+    if (loading) {
+        return <div className="p-8 text-center">Chargement des analyses...</div>;
+    }
+
+    const revenueData = financialStats?.revenue_history?.map(item => ({
+        month: item.period, // API might return "2024-05", we might want to format. Assuming string.
+        revenue: item.revenue
+    })) || [];
+
+    const peakHoursData = productionStats?.peak_hours || [];
+    const topZonesData = productionStats?.top_zones || [];
+
     return (
         <div className="flex flex-col gap-4">
             <div className="grid gap-4 md:grid-cols-2">
                 <Card>
                     <CardHeader>
                         <CardTitle>Évolution du Chiffre d'Affaires</CardTitle>
-                        <CardDescription>Janvier - Juin 2024</CardDescription>
+                        <CardDescription>Période Actuelle</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <ChartContainer config={revenueConfig}>
@@ -86,11 +109,11 @@ export function StatisticalAnalysis() {
                             >
                                 <CartesianGrid vertical={false} />
                                 <XAxis
-                                    dataKey="month"
+                                    dataKey="month" // Actually period/date
                                     tickLine={false}
                                     axisLine={false}
                                     tickMargin={8}
-                                    tickFormatter={(value) => value.slice(0, 3)}
+                                    tickFormatter={(value) => value.slice(0, 3)} // Show simplified label
                                 />
                                 <ChartTooltip
                                     cursor={false}
@@ -110,10 +133,7 @@ export function StatisticalAnalysis() {
                         <div className="flex w-full items-start gap-2 text-sm">
                             <div className="grid gap-2">
                                 <div className="flex items-center gap-2 font-medium leading-none">
-                                    Croissance de 12.5% ce mois <TrendingUp className="h-4 w-4" />
-                                </div>
-                                <div className="flex items-center gap-2 leading-none text-muted-foreground">
-                                    Tendance positive sur les 6 derniers mois
+                                    Données en temps réel <TrendingUp className="h-4 w-4" />
                                 </div>
                             </div>
                         </div>
@@ -150,7 +170,7 @@ export function StatisticalAnalysis() {
                 <Card>
                     <CardHeader>
                         <CardTitle>Zones Géographiques Populaires</CardTitle>
-                        <CardDescription>Top 5 des quartiers les plus actifs</CardDescription>
+                        <CardDescription>Top quartiers plus actifs</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <ChartContainer config={topZonesConfig}>

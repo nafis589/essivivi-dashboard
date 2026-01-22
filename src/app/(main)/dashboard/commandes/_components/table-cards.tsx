@@ -7,12 +7,32 @@ import { DataTableViewOptions } from "@/components/data-table/data-table-view-op
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDataTableInstance } from "@/hooks/use-data-table-instance";
 import { columns } from "./columns";
-import { ordersData } from "./data";
+import { commandeService } from "@/services/commande.service";
+import type { Commande } from "@/services/commande.service";
 import { OrdersToolbar } from "./orders-toolbar";
 
 export function TableCards() {
+    const [data, setData] = React.useState<Commande[]>([]);
+    const [loading, setLoading] = React.useState(false);
+
+    const fetchCommandes = React.useCallback(async () => {
+        setLoading(true);
+        try {
+            const list = await commandeService.getAllCommandes();
+            setData(list);
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    React.useEffect(() => {
+        fetchCommandes();
+    }, [fetchCommandes]);
+
     const table = useDataTableInstance({
-        data: ordersData,
+        data,
         columns,
         getRowId: (row) => row.id,
     });

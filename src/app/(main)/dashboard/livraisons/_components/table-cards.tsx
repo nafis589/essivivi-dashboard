@@ -7,12 +7,32 @@ import { DataTableViewOptions } from "@/components/data-table/data-table-view-op
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardAction } from "@/components/ui/card";
 import { useDataTableInstance } from "@/hooks/use-data-table-instance";
 import { columns } from "./columns";
-import { deliveriesData } from "./data";
+import { livraisonService } from "@/services/livraison.service";
+import type { Livraison } from "@/services/livraison.service";
 import { DeliveriesToolbar } from "./deliveries-toolbar";
 
 export function TableCards() {
+    const [data, setData] = React.useState<Livraison[]>([]);
+    const [loading, setLoading] = React.useState(false);
+
+    const fetchLivraisons = React.useCallback(async () => {
+        setLoading(true);
+        try {
+            const list = await livraisonService.getAllLivraisons();
+            setData(list);
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    React.useEffect(() => {
+        fetchLivraisons();
+    }, [fetchLivraisons]);
+
     const table = useDataTableInstance({
-        data: deliveriesData,
+        data,
         columns,
         getRowId: (row) => row.id,
     });

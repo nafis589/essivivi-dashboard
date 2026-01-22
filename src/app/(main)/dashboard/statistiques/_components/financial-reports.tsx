@@ -1,10 +1,51 @@
 "use client";
 
+import * as React from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
+import { statsService } from "@/services/stats.service";
+import type { FinancialStats } from "@/services/stats.service";
 
 export function FinancialReports() {
+    const [financialStats, setFinancialStats] = React.useState<FinancialStats | null>(null);
+    const [loading, setLoading] = React.useState(true);
+
+    const fetchData = React.useCallback(async () => {
+        try {
+            setLoading(true);
+            const data = await statsService.getFinancialReports("daily");
+            setFinancialStats(data);
+        } catch (error) {
+            console.error("Failed to fetch financial reports", error);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    React.useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
+    if (loading) {
+        return <div className="p-8 text-center">Chargement des rapports financiers...</div>;
+    }
+
+    const { debts, revenue_vs_target, revenue_history } = financialStats || {};
+
+    const formatCurrency = (amount: number) => {
+        return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF' }).format(amount);
+    };
+
+    const getProgress = (current: number, target: number) => {
+        if (!target) return 0;
+        return Math.min(Math.round((current / target) * 100), 100);
+    };
+
+    const globalProgress = revenue_vs_target ? getProgress(revenue_vs_target.global.current, revenue_vs_target.global.target) : 0;
+    const tricyclesProgress = revenue_vs_target ? getProgress(revenue_vs_target.tricycles.current, revenue_vs_target.tricycles.target) : 0;
+    const wholesaleProgress = revenue_vs_target ? getProgress(revenue_vs_target.wholesale.current, revenue_vs_target.wholesale.target) : 0;
+
     return (
         <div className="flex flex-col gap-4">
             <div className="grid gap-4 md:grid-cols-2">
@@ -23,21 +64,19 @@ export function FinancialReports() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                <TableRow>
-                                    <TableCell className="font-medium">Maquis 228</TableCell>
-                                    <TableCell className="text-red-500">150,000 FCFA</TableCell>
-                                    <TableCell>2024-06-01</TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell className="font-medium">Hotel Sarakawa</TableCell>
-                                    <TableCell className="text-red-500">500,000 FCFA</TableCell>
-                                    <TableCell>2024-06-15</TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell className="font-medium">Boutique Abla</TableCell>
-                                    <TableCell className="text-red-500">25,000 FCFA</TableCell>
-                                    <TableCell>2024-05-30</TableCell>
-                                </TableRow>
+                                {debts && debts.length > 0 ? (
+                                    debts.map((debt, index) => (
+                                        <TableRow key={index}>
+                                            <TableCell className="font-medium">{debt.client_name}</TableCell>
+                                            <TableCell className="text-red-500">{formatCurrency(debt.amount_due)}</TableCell>
+                                            <TableCell>{debt.due_date}</TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    <TableRow>
+                                        <TableCell colSpan={3} className="text-center">Aucune créance trouvée</TableCell>
+                                    </TableRow>
+                                )}
                             </TableBody>
                         </Table>
                     </CardContent>
@@ -46,30 +85,35 @@ export function FinancialReports() {
                 <Card>
                     <CardHeader>
                         <CardTitle>Prévisions de Ventes</CardTitle>
-                        <CardDescription>Objectifs vs Réalisé (Juin 2024)</CardDescription>
+                        <CardDescription>Objectifs vs Réalisé</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
-                        <div className="space-y-2">
-                            <div className="flex items-center justify-between text-sm">
-                                <span className="font-medium">Chiffre d'affaires Global</span>
-                                <span className="text-muted-foreground">85% (8.5M / 10M FCFA)</span>
-                            </div>
-                            <Progress value={85} className="h-2" />
-                        </div>
-                        <div className="space-y-2">
-                            <div className="flex items-center justify-between text-sm">
-                                <span className="font-medium">Ventes Tricycles</span>
-                                <span className="text-muted-foreground">60% (3M / 5M FCFA)</span>
-                            </div>
-                            <Progress value={60} className="h-2" />
-                        </div>
-                        <div className="space-y-2">
-                            <div className="flex items-center justify-between text-sm">
-                                <span className="font-medium">Ventes Gros</span>
-                                <span className="text-muted-foreground">92% (4.6M / 5M FCFA)</span>
-                            </div>
-                            <Progress value={92} className="h-2" />
-                        </div>
+                        {revenue_vs_target && (
+                            <>
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between text-sm">
+                                        <span className="font-medium">Chiffre d'affaires Global</span>
+                                        <span className="text-muted-foreground">{globalProgress}% ({formatCurrency(revenue_vs_target.global.current)} / {formatCurrency(revenue_vs_target.global.target)})</span>
+                                    </div>
+                                    <Progress value={globalProgress} className="h-2" />
+                                </div>
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between text-sm">
+                                        <span className="font-medium">Ventes Tricycles</span>
+                                        <span className="text-muted-foreground">{tricyclesProgress}% ({formatCurrency(revenue_vs_target.tricycles.current)} / {formatCurrency(revenue_vs_target.tricycles.target)})</span>
+                                    </div>
+                                    <Progress value={tricyclesProgress} className="h-2" />
+                                </div>
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between text-sm">
+                                        <span className="font-medium">Ventes Gros</span>
+                                        <span className="text-muted-foreground">{wholesaleProgress}% ({formatCurrency(revenue_vs_target.wholesale.current)} / {formatCurrency(revenue_vs_target.wholesale.target)})</span>
+                                    </div>
+                                    <Progress value={wholesaleProgress} className="h-2" />
+                                </div>
+                            </>
+                        )}
+                        {!revenue_vs_target && <div className="text-center text-muted-foreground">Aucune donnée de prévision</div>}
                     </CardContent>
                 </Card>
             </div>
@@ -89,24 +133,22 @@ export function FinancialReports() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            <TableRow>
-                                <TableCell className="font-medium">Mai 2024</TableCell>
-                                <TableCell>12,500,000 FCFA</TableCell>
-                                <TableCell>11,000,000 FCFA</TableCell>
-                                <TableCell className="text-green-600">+13.6%</TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell className="font-medium">Avril 2024</TableCell>
-                                <TableCell>10,200,000 FCFA</TableCell>
-                                <TableCell>10,000,000 FCFA</TableCell>
-                                <TableCell className="text-green-600">+2.0%</TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell className="font-medium">Mars 2024</TableCell>
-                                <TableCell>9,800,000 FCFA</TableCell>
-                                <TableCell>10,000,000 FCFA</TableCell>
-                                <TableCell className="text-red-600">-2.0%</TableCell>
-                            </TableRow>
+                            {revenue_history && revenue_history.length > 0 ? (
+                                revenue_history.map((item, index) => (
+                                    <TableRow key={index}>
+                                        <TableCell className="font-medium">{item.period}</TableCell>
+                                        <TableCell>{formatCurrency(item.revenue)}</TableCell>
+                                        <TableCell>{formatCurrency(item.target)}</TableCell>
+                                        <TableCell className={item.variation >= 0 ? "text-green-600" : "text-red-600"}>
+                                            {item.variation >= 0 ? "+" : ""}{item.variation}%
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan={4} className="text-center">Aucun historique trouvé</TableCell>
+                                </TableRow>
+                            )}
                         </TableBody>
                     </Table>
                 </CardContent>

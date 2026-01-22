@@ -14,15 +14,34 @@ import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle }
 import { useDataTableInstance } from "@/hooks/use-data-table-instance";
 
 import { agentsColumns } from "./columns.crm";
-import { agentsData } from "./crm.config";
+import { agentService } from "@/services/agent.service";
+import type { Agent } from "@/services/agent.service";
 
 export function TableCards() {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
+  const [data, setData] = React.useState<Agent[]>([]);
+  const [loading, setLoading] = React.useState(false);
+
+  const fetchAgents = React.useCallback(async () => {
+    setLoading(true);
+    try {
+      const list = await agentService.getAllAgents();
+      setData(list);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    fetchAgents();
+  }, [fetchAgents]);
 
   const table = useDataTableInstance({
-    data: agentsData,
+    data,
     columns: agentsColumns,
-    getRowId: (row) => row.identificationNumber,
+    getRowId: (row) => row.id,
   });
 
   return (

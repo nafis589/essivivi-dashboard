@@ -33,36 +33,36 @@ export const columns: ColumnDef<Order>[] = [
     cell: ({ row }) => <span className="font-medium">{row.getValue("id")}</span>,
   },
   {
-    accessorKey: "date",
+    accessorKey: "date_creation",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Date" />,
   },
   {
-    accessorKey: "clientName",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Client" />,
+    accessorKey: "client",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Client ID" />,
   },
   {
-    accessorKey: "quantity",
+    accessorKey: "qt_commandee",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Quantité" />,
   },
   {
-    accessorKey: "status",
+    accessorKey: "statut",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Statut" />,
     cell: ({ row }) => {
-      const status = row.getValue("status") as string;
+      const status = (row.getValue("statut") as string) ?? "";
       return (
         <Badge
           variant={
-            status === "Livrée"
+            status === "livre" || status === "Livrée"
               ? "default"
-              : status === "Annulée"
+              : status === "annulee" || status === "Annulée"
                 ? "destructive"
-                : status === "En cours" || status === "Acceptée"
-                  ? "default" // Blue/Primary for success/progress usually
-                  : "secondary" // Gray/Secondary for pending
+                : status === "en_cours" || status === "En cours"
+                  ? "default"
+                  : "secondary"
           }
           className={
-            status === "En attente" ? "bg-yellow-500 hover:bg-yellow-600" :
-              status === "En cours" ? "bg-blue-500 hover:bg-blue-600" :
+            status === "en_attente" || status === "En attente" ? "bg-yellow-500 hover:bg-yellow-600" :
+              status === "en_cours" || status === "En cours" ? "bg-blue-500 hover:bg-blue-600" :
                 ""
           }
         >
@@ -72,7 +72,7 @@ export const columns: ColumnDef<Order>[] = [
     },
   },
   {
-    accessorKey: "agentName",
+    accessorKey: "agent",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Agent Assigné" />,
     cell: ({ row }) => <AssignAgentDrawer order={row.original} />,
   },

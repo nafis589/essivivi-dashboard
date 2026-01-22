@@ -1,12 +1,14 @@
 import z from "zod";
 
+// Schema aligned with backend API fields from essivi_custom_collection.json
 export const clientSchema = z.object({
-  clientCode: z.string(),
-  posName: z.string(),
-  manager: z.string(),
-  phoneNumber: z.string(),
-  address: z.string(),
-  gpsCoordinates: z.string(),
-  registrationDate: z.string(),
-  status: z.enum(["Actif", "Inactif"]),
+  id: z.string(),
+  nom_point_vente: z.string(),
+  responsable: z.string(),
+  telephone: z.string(),
+  adresse: z.string(),
+  email: z.string().optional().nullable().transform((v) => v ?? undefined),
+  user_details: z.object({
+    email: z.string().optional(),
+  }).optional().nullable().transform((v) => v ?? undefined),
 });

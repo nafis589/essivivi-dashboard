@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { Plus } from "lucide-react";
 
 import { DataTable } from "@/components/data-table/data-table";
@@ -10,16 +10,35 @@ import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle }
 import { useDataTableInstance } from "@/hooks/use-data-table-instance";
 
 import { clientsColumns } from "./columns.crm";
-import { clientsData } from "./crm.config";
-import UserModal from "../../agents/_components/add-user-modal";
+import { clientService } from "@/services/client.service";
+import type { Client } from "@/services/client.service";
+import ClientModal from "./client-modal";
 
 export function TableCards() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [data, setData] = useState<Client[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchClients = useCallback(async () => {
+    setLoading(true);
+    try {
+      const list = await clientService.getAllClients();
+      setData(list);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchClients();
+  }, [fetchClients]);
 
   const table = useDataTableInstance({
-    data: clientsData,
+    data,
     columns: clientsColumns,
-    getRowId: (row) => row.clientCode,
+    getRowId: (row) => row.id,
   });
 
   return (
@@ -46,7 +65,7 @@ export function TableCards() {
         </CardContent>
       </Card>
 
-      <UserModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} type="client" mode="create" />
+      <ClientModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} mode="create" type="client" onSaved={fetchClients} />
     </div>
   );
 }

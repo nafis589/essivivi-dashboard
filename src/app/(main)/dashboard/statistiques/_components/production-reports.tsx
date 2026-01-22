@@ -1,11 +1,52 @@
 "use client";
 
+import * as React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Package, TrendingUp, Users } from "lucide-react";
+import { statsService } from "@/services/stats.service";
+import type { DashboardStats, AgentPerformance } from "@/services/stats.service";
 
 export function ProductionReports() {
+    const [stats, setStats] = React.useState<DashboardStats | null>(null);
+    const [agents, setAgents] = React.useState<AgentPerformance[]>([]);
+    const [loading, setLoading] = React.useState(true);
+
+    const fetchData = React.useCallback(async () => {
+        try {
+            setLoading(true);
+            const results = await Promise.allSettled([
+                statsService.getDashboardStats(),
+                statsService.getAgentPerformance()
+            ]);
+
+            if (results[0].status === "fulfilled") {
+                setStats(results[0].value);
+            } else {
+                console.error("Failed to fetch dashboard stats", results[0].reason);
+            }
+
+            if (results[1].status === "fulfilled") {
+                setAgents(results[1].value);
+            } else {
+                console.error("Failed to fetch agent performance", results[1].reason);
+            }
+        } catch (error) {
+            console.error("Unexpected error in production reports fetch", error);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    React.useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
+    if (loading) {
+        return <div className="p-8 text-center">Chargement des rapports...</div>;
+    }
+
     return (
         <div className="flex flex-col gap-4">
             <div className="grid gap-4 md:grid-cols-3">
@@ -15,8 +56,14 @@ export function ProductionReports() {
                         <Package className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">1,234</div>
-                        <p className="text-xs text-muted-foreground">+20.1% par rapport au mois dernier</p>
+                        <div className="text-2xl font-bold">{stats?.total_deliveries ?? 0}</div>
+                        <p className="text-xs text-muted-foreground">
+                            {stats?.delivery_growth ? (
+                                <span className={stats.delivery_growth > 0 ? "text-green-600" : "text-red-600"}>
+                                    {stats.delivery_growth > 0 ? "+" : ""}{stats.delivery_growth}%
+                                </span>
+                            ) : "0%"} par rapport au mois dernier
+                        </p>
                     </CardContent>
                 </Card>
                 <Card>
@@ -25,8 +72,14 @@ export function ProductionReports() {
                         <TrendingUp className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">45,231</div>
-                        <p className="text-xs text-muted-foreground">+15% par rapport au mois dernier</p>
+                        <div className="text-2xl font-bold">{stats?.total_quantity?.toLocaleString() ?? 0}</div>
+                        <p className="text-xs text-muted-foreground">
+                            {stats?.quantity_growth ? (
+                                <span className={stats.quantity_growth > 0 ? "text-green-600" : "text-red-600"}>
+                                    {stats.quantity_growth > 0 ? "+" : ""}{stats.quantity_growth}%
+                                </span>
+                            ) : "0%"} par rapport au mois dernier
+                        </p>
                     </CardContent>
                 </Card>
                 <Card>
@@ -35,8 +88,14 @@ export function ProductionReports() {
                         <span className="font-bold text-muted-foreground">FCFA</span>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">12,234,000</div>
-                        <p className="text-xs text-muted-foreground">+19% par rapport au mois dernier</p>
+                        <div className="text-2xl font-bold">{stats?.total_amount?.toLocaleString() ?? 0}</div>
+                        <p className="text-xs text-muted-foreground">
+                            {stats?.amount_growth ? (
+                                <span className={stats.amount_growth > 0 ? "text-green-600" : "text-red-600"}>
+                                    {stats.amount_growth > 0 ? "+" : ""}{stats.amount_growth}%
+                                </span>
+                            ) : "0%"} par rapport au mois dernier
+                        </p>
                     </CardContent>
                 </Card>
             </div>
@@ -57,34 +116,34 @@ export function ProductionReports() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            <TableRow>
-                                <TableCell className="font-medium">Koffi Mensah</TableCell>
-                                <TableCell>320</TableCell>
-                                <TableCell>12,400</TableCell>
-                                <TableCell>3,200,000</TableCell>
-                                <TableCell><Badge className="bg-green-500">Top Performer</Badge></TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell className="font-medium">Ama Doe</TableCell>
-                                <TableCell>280</TableCell>
-                                <TableCell>10,100</TableCell>
-                                <TableCell>2,800,000</TableCell>
-                                <TableCell><Badge variant="outline">Excellent</Badge></TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell className="font-medium">Yao Paul</TableCell>
-                                <TableCell>210</TableCell>
-                                <TableCell>8,500</TableCell>
-                                <TableCell>2,100,000</TableCell>
-                                <TableCell><Badge variant="secondary">Bon</Badge></TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell className="font-medium">Afi Akpene</TableCell>
-                                <TableCell>150</TableCell>
-                                <TableCell>5,200</TableCell>
-                                <TableCell>1,500,000</TableCell>
-                                <TableCell><Badge variant="secondary">Moyen</Badge></TableCell>
-                            </TableRow>
+                            {agents.length > 0 ? (
+                                agents.map((agent) => (
+                                    <TableRow key={agent.agent_id}>
+                                        <TableCell className="font-medium">{agent.agent_name}</TableCell>
+                                        <TableCell>{agent.deliveries_count}</TableCell>
+                                        <TableCell>{agent.quantity_delivered?.toLocaleString()}</TableCell>
+                                        <TableCell>{agent.total_amount?.toLocaleString()}</TableCell>
+                                        <TableCell>
+                                            <Badge
+                                                className={
+                                                    agent.status === "Top Performer" ? "bg-green-500" :
+                                                        agent.status === "Excellent" ? "bg-blue-500" :
+                                                            "bg-secondary text-secondary-foreground"
+                                                }
+                                                variant="outline"
+                                            >
+                                                {agent.status}
+                                            </Badge>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan={5} className="text-center py-4">
+                                        Aucun agent trouvé
+                                    </TableCell>
+                                </TableRow>
+                            )}
                         </TableBody>
                     </Table>
                 </CardContent>

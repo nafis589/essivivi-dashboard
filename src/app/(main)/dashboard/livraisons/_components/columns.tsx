@@ -33,67 +33,30 @@ export const columns: ColumnDef<Delivery>[] = [
         cell: ({ row }) => <span className="font-medium">{row.getValue("id")}</span>,
     },
     {
-        accessorKey: "agentId",
+        accessorKey: "agent",
         header: ({ column }) => <DataTableColumnHeader column={column} title="ID Agent" />,
     },
     {
-        accessorKey: "agentName",
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Nom Agent" />,
+        accessorKey: "commande",
+        header: ({ column }) => <DataTableColumnHeader column={column} title="ID Commande" />,
     },
     {
-        accessorKey: "clientName",
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Client / Point de Vente" />,
+        accessorKey: "date_livraison",
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Date Livraison" />,
     },
     {
-        accessorKey: "clientPhone",
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Tél. Client" />,
-    },
-    {
-        accessorKey: "clientAddress",
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Adresse Client" />,
-    },
-    {
-        accessorKey: "quantity",
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Qté Livrée" />,
-        cell: ({ row }) => <span className="font-medium">{row.getValue("quantity")}</span>,
-    },
-    {
-        accessorKey: "amount",
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Montant (FCFA)" />,
-        cell: ({ row }) => {
-            const amount = parseFloat(row.getValue("amount"));
-            const formatted = new Intl.NumberFormat("fr-FR", {
-                style: "currency",
-                currency: "XOF",
-            }).format(amount);
-            return <span className="font-medium">{formatted}</span>;
-        },
-    },
-    {
-        accessorKey: "date",
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Date" />,
-    },
-    {
-        accessorKey: "time",
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Heure" />,
-    },
-    {
-        accessorKey: "duration",
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Durée" />,
-    },
-    {
-        accessorKey: "status",
+        accessorKey: "statut",
         header: ({ column }) => <DataTableColumnHeader column={column} title="Statut" />,
         cell: ({ row }) => {
-            const status = row.getValue("status") as string;
+            const status = (row.getValue("statut") as string) ?? "";
             return (
                 <Badge
                     variant={
-                        status === "Livré"
+                        status === "livre" || status === "Livré"
                             ? "default"
-                            : status === "Annulé"
+                            : status === "annule" || status === "Annulé"
                                 ? "destructive"
-                                : status === "En cours"
+                                : status === "en_cours" || status === "En cours"
                                     ? "default"
                                     : "secondary"
                     }
@@ -101,6 +64,14 @@ export const columns: ColumnDef<Delivery>[] = [
                     {status}
                 </Badge>
             );
+        },
+    },
+    {
+        accessorKey: "is_validated",
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Validée" />,
+        cell: ({ row }) => {
+            const isValidated = row.getValue("is_validated") as boolean;
+            return <Badge variant={isValidated ? "default" : "secondary"}>{isValidated ? "Oui" : "Non"}</Badge>;
         },
     },
     {

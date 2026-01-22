@@ -31,11 +31,11 @@ export function OrdersToolbar({ table }: OrdersToolbarProps) {
             ["ID", "Date", "Client", "Quantité", "Statut", "Agent"].join(","),
             ...rows.map(row => [
                 row.original.id,
-                row.original.date,
-                row.original.clientName,
-                row.original.quantity,
-                row.original.status,
-                row.original.agentName
+                row.original.date_creation || "",
+                row.original.client,
+                row.original.qt_commandee,
+                row.original.statut || "",
+                row.original.agent || ""
             ].join(","))
         ].join("\n");
 
@@ -55,9 +55,9 @@ export function OrdersToolbar({ table }: OrdersToolbarProps) {
             <div className="flex items-center space-x-2">
                 <Input
                     placeholder="Filtrer par client..."
-                    value={(table.getColumn("clientName")?.getFilterValue() as string) ?? ""}
+                    value={(table.getColumn("client")?.getFilterValue() as string) ?? ""}
                     onChange={(event) =>
-                        table.getColumn("clientName")?.setFilterValue(event.target.value)
+                        table.getColumn("client")?.setFilterValue(event.target.value)
                     }
                     className="h-8 w-[150px] lg:w-[250px]"
                 />

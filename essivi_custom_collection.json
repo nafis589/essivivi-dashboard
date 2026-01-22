@@ -15,7 +15,8 @@
                             "script": {
                                 "exec": [
                                     "var jsonData = pm.response.json();",
-                                    "pm.environment.set(\"access_token\", jsonData.access);"
+                                    "pm.collectionVariables.set(\"access_token\", jsonData.access);",
+                                    "pm.collectionVariables.set(\"refresh_token\", jsonData.refresh);"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -446,6 +447,251 @@
             ]
         },
         {
+            "name": "Admin Users",
+            "item": [
+                {
+                    "name": "List Admin Users",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/auth/admin-users/?search=&page=1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "admin-users",
+                                ""
+                            ],
+                            "query": [
+                                {
+                                    "key": "search",
+                                    "value": ""
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Create Admin User",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/auth/admin-users/",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "admin-users",
+                                ""
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"gestionnaire@essivivi.com\",\n    \"name\": \"Jean Dupont\",\n    \"role\": \"gestionnaire\",\n    \"status\": \"actif\"\n}"
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Admin User Details",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/auth/admin-users/{{admin_user_id}}/",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "admin-users",
+                                "{{admin_user_id}}",
+                                ""
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Admin User",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/auth/admin-users/{{admin_user_id}}/",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "admin-users",
+                                "{{admin_user_id}}",
+                                ""
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Jean Dupont Updated\",\n    \"role\": \"super_admin\",\n    \"status\": \"actif\"\n}"
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Delete Admin User",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/auth/admin-users/{{admin_user_id}}/",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "admin-users",
+                                "{{admin_user_id}}",
+                                ""
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Filter by Role",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/auth/admin-users/by_role/?role=gestionnaire",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "admin-users",
+                                "by_role",
+                                ""
+                            ],
+                            "query": [
+                                {
+                                    "key": "role",
+                                    "value": "gestionnaire"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Filter by Status",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/auth/admin-users/by_status/?status=actif",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "admin-users",
+                                "by_status",
+                                ""
+                            ],
+                            "query": [
+                                {
+                                    "key": "status",
+                                    "value": "actif"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
             "name": "Livraisons",
             "item": [
                 {
@@ -494,19 +740,20 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/livraisons/{{livraison_id}}/",
+                            "raw": "{{base_url}}/livraisons/{{livraison_id}}/validate/",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
                                 "livraisons",
                                 "{{livraison_id}}",
+                                "validate",
                                 ""
                             ]
                         },
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"statut\": \"livre\",\n    \"is_validated\": true\n}"
+                            "raw": "{}"
                         }
                     },
                     "response": []
@@ -514,34 +761,150 @@
             ]
         },
         {
-            "name": "Dashboard Stats",
-            "request": {
-                "method": "GET",
-                "header": [
-                    {
-                        "key": "Content-Type",
-                        "value": "application/json",
-                        "type": "text"
+            "name": "Statistics",
+            "item": [
+                {
+                    "name": "Dashboard Stats",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/dashboard/stats/",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "dashboard",
+                                "stats",
+                                ""
+                            ]
+                        }
                     },
-                    {
-                        "key": "Authorization",
-                        "value": "Bearer {{access_token}}",
-                        "type": "text"
-                    }
-                ],
-                "url": {
-                    "raw": "{{base_url}}/dashboard/stats/",
-                    "host": [
-                        "{{base_url}}"
-                    ],
-                    "path": [
-                        "dashboard",
-                        "stats",
-                        ""
-                    ]
+                    "response": []
+                },
+                {
+                    "name": "Production Statistics",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/dashboard/production/?period=30",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "dashboard",
+                                "production",
+                                ""
+                            ],
+                            "query": [
+                                {
+                                    "key": "period",
+                                    "value": "30",
+                                    "description": "Number of days (default: 30)"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Agent Performance",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/dashboard/performance-agents/?limit=10",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "dashboard",
+                                "performance-agents",
+                                ""
+                            ],
+                            "query": [
+                                {
+                                    "key": "limit",
+                                    "value": "10",
+                                    "description": "Number of top agents (default: 10)"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Financial Reports",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/dashboard/financial/?period=daily",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "dashboard",
+                                "financial",
+                                ""
+                            ],
+                            "query": [
+                                {
+                                    "key": "period",
+                                    "value": "daily",
+                                    "description": "Period type: daily or monthly"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
                 }
-            },
-            "response": []
+            ]
         }
     ],
     "variable": [
@@ -552,6 +915,36 @@
         },
         {
             "key": "access_token",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "refresh_token",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "agent_id",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "client_id",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "commande_id",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "livraison_id",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "admin_user_id",
             "value": "",
             "type": "string"
         }

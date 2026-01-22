@@ -1,20 +1,13 @@
 import z from "zod";
 
+// Schema aligned with backend API fields from essivi_custom_collection.json
 export const deliverySchema = z.object({
     id: z.string(),
-    agentId: z.string(),
-    agentName: z.string(),
-    clientPhone: z.string(),
-    clientName: z.string(),
-    clientAddress: z.string(),
-    latitude: z.number(),
-    longitude: z.number(),
-    quantity: z.number(),
-    amount: z.number(),
-    date: z.string(),
-    time: z.string(),
-    duration: z.string(),
-    status: z.enum(["Livré", "Annulé", "En cours", "Reporté"]),
+    commande: z.string().optional(),
+    agent: z.string().optional(),
+    statut: z.string().optional(),
+    is_validated: z.boolean().optional(),
+    date_livraison: z.string().optional(),
 });
 
 export type Delivery = z.infer<typeof deliverySchema>;

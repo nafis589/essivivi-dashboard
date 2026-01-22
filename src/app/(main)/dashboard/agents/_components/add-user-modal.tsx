@@ -1,12 +1,11 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
     X,
     ChevronUp,
     ChevronDown,
-    Info,
     Plus,
-    Camera
 } from 'lucide-react';
+import { agentService } from '@/services/agent.service';
 
 interface UserModalProps {
     isOpen: boolean;
@@ -14,6 +13,7 @@ interface UserModalProps {
     type?: 'agent' | 'client';
     mode?: 'create' | 'edit';
     initialData?: any;
+    onSaved?: () => void; // callback pour refetch
 }
 
 const UserModal: React.FC<UserModalProps> = ({
@@ -21,22 +21,70 @@ const UserModal: React.FC<UserModalProps> = ({
     onClose,
     type = 'agent',
     mode = 'create',
-    initialData
+    initialData,
+    onSaved,
 }) => {
     const [generalInfoOpen, setGeneralInfoOpen] = useState(true);
     const [additionalInfoOpen, setAdditionalInfoOpen] = useState(false);
-    const [statusActive, setStatusActive] = useState(initialData?.status === 'Actif' || false);
-    const [fileName, setFileName] = useState('Aucun fichier n\'a été sélectionné');
+    const [statusActive, setStatusActive] = useState(false);
+    const [fileName, setFileName] = useState("Aucun fichier n'a été sélectionné");
     const fileInputRef = useRef<HTMLInputElement>(null);
-
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
             setFileName(e.target.files[0].name);
         }
     };
-
     const triggerFileInput = () => {
         fileInputRef.current?.click();
+    };
+
+    // Champs contrôlés pour agent
+    const [nom, setNom] = useState('');
+    const [prenom, setPrenom] = useState('');
+    const [telephone, setTelephone] = useState('');
+    const [tricycle, setTricycle] = useState('');
+    const [dateEmbauche, setDateEmbauche] = useState('');
+    const [email, setEmail] = useState('');
+
+    useEffect(() => {
+        if (isOpen && initialData && type === 'agent') {
+            setNom(initialData.nom ?? '');
+            setPrenom(initialData.prenom ?? '');
+            setTelephone(initialData.telephone ?? '');
+            setTricycle(initialData.tricycle_assigne ?? '');
+            setDateEmbauche(initialData.date_embauche ?? '');
+            setEmail(initialData.user_details?.email ?? initialData.email ?? '');
+            setStatusActive((initialData.statut ?? '').toLowerCase() === 'actif');
+        } else if (isOpen && mode === 'create') {
+            setNom(''); setPrenom(''); setTelephone(''); setTricycle(''); setDateEmbauche(''); setEmail(''); setStatusActive(false);
+        }
+    }, [isOpen, initialData, type, mode]);
+
+    const handleSubmit = async () => {
+        try {
+            if (type === 'agent') {
+                if (mode === 'create') {
+                    await agentService.createAgent({
+                        nom,
+                        prenom,
+                        telephone,
+                        tricycle_assigne: tricycle || undefined,
+                    });
+                } else if (mode === 'edit' && initialData?.id) {
+                    await agentService.updateAgent(initialData.id, {
+                        nom,
+                        prenom,
+                        telephone,
+                        tricycle_assigne: tricycle || undefined,
+                        statut: statusActive ? 'actif' : 'inactif',
+                    });
+                }
+            }
+            onClose();
+            onSaved?.();
+        } catch (e) {
+            console.error(e);
+        }
     };
 
     if (!isOpen) return null;
@@ -120,17 +168,17 @@ const UserModal: React.FC<UserModalProps> = ({
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <FormField label="Numéro d'identification (Auto)" placeholder="AGT-001" value={initialData?.id || "Auto-généré"} disabled />
-                                            <FormField label="Nom et Prénom" placeholder="Jean Dupont" value={initialData?.name} />
+                                            <FormField label="Nom" placeholder="Doe" value={nom} onChange={(e) => setNom((e.target as HTMLInputElement).value)} />
                                         </div>
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <FormField label="Email" placeholder="jean.dupont@essivivi.com" type="email" value={initialData?.email} />
-                                            <FormField label="Numéro de téléphone" placeholder="+228 90 00 00 00" value={initialData?.phoneNumber} />
+                                            <FormField label="Prénom" placeholder="John" value={prenom} onChange={(e) => setPrenom((e.target as HTMLInputElement).value)} />
+                                            <FormField label="Numéro de téléphone" placeholder="+228 90 00 00 00" value={telephone} onChange={(e) => setTelephone((e.target as HTMLInputElement).value)} />
                                         </div>
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <FormField label="Date de naissance" type="date" value={initialData?.birthDate} />
-                                            <FormField label="Date d'embauche" type="date" value={initialData?.hireDate} />
+                                            <FormField label="Date d'embauche" type="date" value={dateEmbauche} onChange={(e) => setDateEmbauche((e.target as HTMLInputElement).value)} />
                                         </div>
 
                                         <FormField label="Adresse" placeholder="Lomé, Togo" value={initialData?.address} />
@@ -143,25 +191,12 @@ const UserModal: React.FC<UserModalProps> = ({
                                                 <select
                                                     className="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-all"
                                                     style={{ backgroundColor: '#f4f4f4', borderColor: '#a0a8b4' }}
-                                                    defaultValue={initialData?.tricycle || ""}
+                                                    value={tricycle}
+                                                    onChange={(e) => setTricycle(e.target.value)}
                                                 >
                                                     <option value="">Sélectionner un tricycle</option>
                                                     <option value="TRI-001">TRI-001</option>
                                                     <option value="TRI-002">TRI-002</option>
-                                                </select>
-                                            </div>
-                                            <div className="space-y-1.5">
-                                                <label className="flex items-center gap-1.5 text-sm font-semibold text-gray-700">
-                                                    Niveau d'accès
-                                                </label>
-                                                <select
-                                                    className="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                                                    style={{ backgroundColor: '#f4f4f4', borderColor: '#a0a8b4' }}
-                                                    defaultValue={initialData?.accessLevel || "Superviseur"}
-                                                >
-                                                    <option>Super Admin</option>
-                                                    <option>Gestionnaire</option>
-                                                    <option>Superviseur</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -285,7 +320,7 @@ const UserModal: React.FC<UserModalProps> = ({
                 {/* Footer Actions */}
                 <div className="px-6 py-4 flex gap-3">
                     <button
-                        onClick={onClose}
+                        onClick={handleSubmit}
                         className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
                     >
                         <Plus size={18} />
@@ -312,15 +347,16 @@ interface FormFieldProps {
     type?: string;
     value?: string;
     disabled?: boolean;
+    onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-const FormField: React.FC<FormFieldProps> = ({ label, placeholder, type = "text", value, disabled }) => (
+const FormField: React.FC<FormFieldProps> = ({ label, placeholder, type = "text", value, disabled, onChange }) => (
     <div className="space-y-1.5">
         <label className="block text-sm font-semibold text-gray-700">{label}</label>
         <input
             type={type}
             placeholder={placeholder}
-            defaultValue={value}
+            {...(onChange ? { value: value ?? "", onChange } : { defaultValue: value })}
             disabled={disabled}
             className="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-all text-gray-900 placeholder:text-gray-400 disabled:bg-gray-200 disabled:text-gray-500"
             style={{ backgroundColor: disabled ? '#e5e7eb' : '#f4f4f4', borderColor: '#a0a8b4' }}
