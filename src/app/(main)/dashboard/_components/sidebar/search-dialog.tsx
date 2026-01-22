@@ -1,7 +1,20 @@
 "use client";
-import * as React from "react";
 
-import { ChartBar, Forklift, Gauge, GraduationCap, LayoutDashboard, Search, ShoppingBag } from "lucide-react";
+import * as React from "react";
+import { useRouter } from "next/navigation";
+import {
+  ChartBar,
+  Fingerprint,
+  Forklift,
+  LayoutDashboard,
+  Lock,
+  Map,
+  ReceiptText,
+  Search,
+  Settings,
+  ShoppingBag,
+  Users,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -15,20 +28,33 @@ import {
 } from "@/components/ui/command";
 
 const searchItems = [
-  { group: "Dashboards", icon: LayoutDashboard, label: "Default" },
-  { group: "Dashboards", icon: ChartBar, label: "CRM", disabled: true },
-  { group: "Dashboards", icon: Gauge, label: "Analytics", disabled: true },
-  { group: "Dashboards", icon: ShoppingBag, label: "E-Commerce", disabled: true },
-  { group: "Dashboards", icon: GraduationCap, label: "Academy", disabled: true },
-  { group: "Dashboards", icon: Forklift, label: "Logistics", disabled: true },
-  { group: "Authentication", label: "Login v1" },
-  { group: "Authentication", label: "Login v2" },
-  { group: "Authentication", label: "Register v1" },
-  { group: "Authentication", label: "Register v2" },
+  {
+    group: "Général",
+    items: [
+      { width: "default", icon: LayoutDashboard, label: "Tableau de bord", url: "/dashboard/default" },
+      { width: "default", icon: Users, label: "Agents", url: "/dashboard/agents" },
+      { width: "default", icon: Users, label: "Clients", url: "/dashboard/clients" },
+      { width: "default", icon: Forklift, label: "Livraisons", url: "/dashboard/livraisons" },
+      { width: "default", icon: ShoppingBag, label: "Commandes", url: "/dashboard/commandes" },
+      { width: "default", icon: ChartBar, label: "Statistiques & Rapports", url: "/dashboard/statistiques" },
+      { width: "default", icon: Map, label: "Cartographie", url: "/dashboard/map" },
+    ],
+  },
+  {
+    group: "Administration",
+    items: [
+      { width: "default", icon: Lock, label: "Utilisateurs Admin", url: "/dashboard/admin-users" },
+      { width: "default", icon: Settings, label: "Paramètres", url: "/dashboard/settings" },
+      { width: "default", icon: ReceiptText, label: "Logs & Audit", url: "/dashboard/logs" },
+      { width: "default", icon: Fingerprint, label: "Authentification", url: "/auth" },
+    ],
+  },
 ];
 
 export function SearchDialog() {
   const [open, setOpen] = React.useState(false);
+  const router = useRouter();
+
   React.useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.key === "j" && (e.metaKey || e.ctrlKey)) {
@@ -40,6 +66,11 @@ export function SearchDialog() {
     return () => document.removeEventListener("keydown", down);
   }, []);
 
+  const handleSelect = (url: string) => {
+    setOpen(false);
+    router.push(url);
+  };
+
   return (
     <>
       <Button
@@ -48,27 +79,29 @@ export function SearchDialog() {
         onClick={() => setOpen(true)}
       >
         <Search className="size-4" />
-        Search
+        Rechercher
         <kbd className="inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-medium text-[10px]">
           <span className="text-xs">⌘</span>J
         </kbd>
       </Button>
       <CommandDialog open={open} onOpenChange={setOpen}>
-        <CommandInput placeholder="Search dashboards, users, and more…" />
+        <CommandInput placeholder="Rechercher..." />
         <CommandList>
-          <CommandEmpty>No results found.</CommandEmpty>
-          {[...new Set(searchItems.map((item) => item.group))].map((group, i) => (
-            <React.Fragment key={group}>
+          <CommandEmpty>Aucun résultat trouvé.</CommandEmpty>
+          {searchItems.map((group, i) => (
+            <React.Fragment key={group.group}>
               {i !== 0 && <CommandSeparator />}
-              <CommandGroup heading={group} key={group}>
-                {searchItems
-                  .filter((item) => item.group === group)
-                  .map((item) => (
-                    <CommandItem className="!py-1.5" key={item.label} onSelect={() => setOpen(false)}>
-                      {item.icon && <item.icon />}
-                      <span>{item.label}</span>
-                    </CommandItem>
-                  ))}
+              <CommandGroup heading={group.group}>
+                {group.items.map((item) => (
+                  <CommandItem
+                    className="!py-1.5"
+                    key={item.label}
+                    onSelect={() => handleSelect(item.url)}
+                  >
+                    {item.icon && <item.icon className="mr-2 h-4 w-4" />}
+                    <span>{item.label}</span>
+                  </CommandItem>
+                ))}
               </CommandGroup>
             </React.Fragment>
           ))}
