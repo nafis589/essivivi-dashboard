@@ -1,5 +1,7 @@
 "use client";
 
+import { authService } from "@/services/auth-service";
+
 import { useRouter } from "next/navigation";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -31,22 +33,25 @@ export function LoginForm() {
   const router = useRouter();
 
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
-    // Simulate login delay
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    try {
+      const response = await authService.login({
+        email: data.email,
+        password: data.password,
+      });
 
-    const mockUser = {
-      name: "Admin User",
-      email: data.email,
-      role: "SUPER_ADMIN",
-    };
+      authService.setSession(response);
 
-    localStorage.setItem("user", JSON.stringify(mockUser));
+      toast("Connexion réussie", {
+        description: "Bienvenue sur le dashboard ESSIVI.",
+      });
 
-    toast("Connexion réussie", {
-      description: "Bienvenue sur le dashboard ESSIVI.",
-    });
-
-    router.push("/dashboard/default");
+      router.push("/dashboard/default");
+    } catch (error: any) {
+      console.error("Login error:", error);
+      toast("Erreur de connexion", {
+        description: error.response?.data?.detail || "Email ou mot de passe incorrect.",
+      });
+    }
   };
 
   return (
