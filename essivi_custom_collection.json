@@ -119,6 +119,36 @@
                     "response": []
                 },
                 {
+                    "name": "Active Agents",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/agents/active/",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "agents",
+                                "active",
+                                ""
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
                     "name": "Create Agent",
                     "request": {
                         "method": "POST",
@@ -434,6 +464,46 @@
                                 "commandes",
                                 "{{commande_id}}",
                                 "assign_agent",
+                                ""
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"agent_id\": \"{{agent_id}}\"\n}"
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Orders",
+            "item": [
+                {
+                    "name": "Assign Agent (PATCH)",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/orders/{{order_id}}/assign-agent/",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "orders",
+                                "{{order_id}}",
+                                "assign-agent",
                                 ""
                             ]
                         },
@@ -794,6 +864,36 @@
                     "response": []
                 },
                 {
+                    "name": "Dashboard Overview",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/dashboard/overview/",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "dashboard",
+                                "overview",
+                                ""
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
                     "name": "Production Statistics",
                     "request": {
                         "method": "GET",
@@ -935,6 +1035,11 @@
         },
         {
             "key": "commande_id",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "order_id",
             "value": "",
             "type": "string"
         },

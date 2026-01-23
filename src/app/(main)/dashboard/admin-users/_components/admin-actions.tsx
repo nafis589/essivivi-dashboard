@@ -14,6 +14,8 @@ import {
 
 import { AdminUserDrawer } from "./admin-user-drawer";
 import type { AdminUser } from "./schema";
+import { adminUserService } from "@/services/admin-user.service";
+import { toast } from "sonner";
 
 interface AdminActionsProps {
     row: Row<AdminUser>;
@@ -22,6 +24,22 @@ interface AdminActionsProps {
 export function AdminActions({ row }: AdminActionsProps) {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const user = row.original;
+
+    const handleDelete = async () => {
+        if (confirm("Êtes-vous sûr de vouloir supprimer cet utilisateur ?")) {
+            try {
+                await adminUserService.deleteAdminUser(user.id);
+                toast.success("Utilisateur supprimé avec succès.");
+                // Since this component is deep in the tree and we don't have a shared context for refresh yet,
+                // we might need to rely on the user refreshing or implement a context later.
+                // For a better UX without context, we could force reload:
+                window.location.reload();
+            } catch (error) {
+                console.error("Failed to delete user", error);
+                toast.error("Erreur lors de la suppression.");
+            }
+        }
+    };
 
     return (
         <>
@@ -34,7 +52,7 @@ export function AdminActions({ row }: AdminActionsProps) {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                     <DropdownMenuItem onClick={() => setIsEditModalOpen(true)}>Modifier</DropdownMenuItem>
-                    <DropdownMenuItem className="text-destructive">Désactiver</DropdownMenuItem>
+                    <DropdownMenuItem className="text-destructive" onClick={handleDelete}>Supprimer</DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
 
@@ -43,6 +61,7 @@ export function AdminActions({ row }: AdminActionsProps) {
                 onOpenChange={setIsEditModalOpen}
                 mode="edit"
                 initialData={user}
+                onSaved={() => window.location.reload()} // Fallback refresh
             />
         </>
     );

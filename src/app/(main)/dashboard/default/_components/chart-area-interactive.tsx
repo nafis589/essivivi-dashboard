@@ -107,12 +107,9 @@ const chartData = [
 ];
 
 const chartConfig = {
-  visitors: {
-    label: "Revenus",
-  },
   revenue: {
     label: "Chiffre d'Affaires",
-    color: "var(--chart-1)",
+    color: "hsl(var(--chart-1))",
   },
 } satisfies ChartConfig;
 
@@ -143,10 +140,10 @@ export function ChartAreaInteractive() {
   return (
     <Card className="@container/card">
       <CardHeader>
-        <CardTitle>Total Visitors</CardTitle>
+        <CardTitle>Total Revenus</CardTitle>
         <CardDescription>
-          <span className="@[540px]/card:block hidden">Total for the last 3 months</span>
-          <span className="@[540px]/card:hidden">Last 3 months</span>
+          <span className="@[540px]/card:block hidden">Total pour les 3 derniers mois</span>
+          <span className="@[540px]/card:hidden">3 derniers mois</span>
         </CardDescription>
         <CardAction>
           <ToggleGroup
@@ -156,27 +153,27 @@ export function ChartAreaInteractive() {
             variant="outline"
             className="@[767px]/card:flex hidden *:data-[slot=toggle-group-item]:px-4!"
           >
-            <ToggleGroupItem value="90d">Last 3 months</ToggleGroupItem>
-            <ToggleGroupItem value="30d">Last 30 days</ToggleGroupItem>
-            <ToggleGroupItem value="7d">Last 7 days</ToggleGroupItem>
+            <ToggleGroupItem value="90d">Derniers 3 mois</ToggleGroupItem>
+            <ToggleGroupItem value="30d">Derniers 30 jours</ToggleGroupItem>
+            <ToggleGroupItem value="7d">Derniers 7 jours</ToggleGroupItem>
           </ToggleGroup>
           <Select value={timeRange} onValueChange={setTimeRange}>
             <SelectTrigger
               className="flex @[767px]/card:hidden w-40 **:data-[slot=select-value]:block **:data-[slot=select-value]:truncate"
               size="sm"
-              aria-label="Select a value"
+              aria-label="Selectionner une période"
             >
-              <SelectValue placeholder="Last 3 months" />
+              <SelectValue placeholder="Derniers 3 mois" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
               <SelectItem value="90d" className="rounded-lg">
-                Last 3 months
+                Derniers 3 mois
               </SelectItem>
               <SelectItem value="30d" className="rounded-lg">
-                Last 30 days
+                Derniers 30 jours
               </SelectItem>
               <SelectItem value="7d" className="rounded-lg">
-                Last 7 days
+                Derniers 7 jours
               </SelectItem>
             </SelectContent>
           </Select>
@@ -186,13 +183,9 @@ export function ChartAreaInteractive() {
         <ChartContainer config={chartConfig} className="aspect-auto h-62 w-full">
           <AreaChart data={filteredData}>
             <defs>
-              <linearGradient id="fillDesktop" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="var(--color-desktop)" stopOpacity={1.0} />
-                <stop offset="95%" stopColor="var(--color-desktop)" stopOpacity={0.1} />
-              </linearGradient>
-              <linearGradient id="fillMobile" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="var(--color-mobile)" stopOpacity={0.8} />
-                <stop offset="95%" stopColor="var(--color-mobile)" stopOpacity={0.1} />
+              <linearGradient id="fillRevenue" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="var(--color-revenue)" stopOpacity={0.8} />
+                <stop offset="95%" stopColor="var(--color-revenue)" stopOpacity={0.1} />
               </linearGradient>
             </defs>
             <CartesianGrid vertical={false} />
@@ -204,7 +197,7 @@ export function ChartAreaInteractive() {
               minTickGap={32}
               tickFormatter={(value) => {
                 const date = new Date(value);
-                return date.toLocaleDateString("en-US", {
+                return date.toLocaleDateString("fr-FR", {
                   month: "short",
                   day: "numeric",
                 });
@@ -216,7 +209,7 @@ export function ChartAreaInteractive() {
               content={
                 <ChartTooltipContent
                   labelFormatter={(value) => {
-                    return new Date(value).toLocaleDateString("en-US", {
+                    return new Date(value).toLocaleDateString("fr-FR", {
                       month: "short",
                       day: "numeric",
                     });
@@ -225,8 +218,7 @@ export function ChartAreaInteractive() {
                 />
               }
             />
-            <Area dataKey="mobile" type="natural" fill="url(#fillMobile)" stroke="var(--color-mobile)" stackId="a" />
-            <Area dataKey="desktop" type="natural" fill="url(#fillDesktop)" stroke="var(--color-desktop)" stackId="a" />
+            <Area dataKey="revenue" type="natural" fill="url(#fillRevenue)" stroke="var(--color-revenue)" stackId="a" />
           </AreaChart>
         </ChartContainer>
       </CardContent>
