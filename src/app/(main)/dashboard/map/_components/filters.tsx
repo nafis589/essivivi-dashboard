@@ -219,3 +219,5 @@ export function MapFilters({
     </Card>
   );
 }
+
+export default MapFilters;

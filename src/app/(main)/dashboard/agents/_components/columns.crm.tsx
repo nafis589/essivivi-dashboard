@@ -72,8 +72,12 @@ export const agentsColumns: ColumnDef<z.infer<typeof agentSchema>>[] = [
     },
   },
   {
-    accessorKey: "tricycle_assigne",
+    id: "tricycle_assigne",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Tricycle assigné" />,
+    cell: ({ row }) => {
+      const tricycleCode = row.original.tricycle_assigne ?? "N/A";
+      return <span className="font-medium">{tricycleCode}</span>;
+    },
   },
   {
     accessorKey: "statut",

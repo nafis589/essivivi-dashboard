@@ -19,9 +19,10 @@ import { toast } from "sonner";
 
 interface AdminActionsProps {
     row: Row<AdminUser>;
+    onRefresh?: () => Promise<void>;
 }
 
-export function AdminActions({ row }: AdminActionsProps) {
+export function AdminActions({ row, onRefresh }: AdminActionsProps) {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const user = row.original;
 
@@ -30,10 +31,13 @@ export function AdminActions({ row }: AdminActionsProps) {
             try {
                 await adminUserService.deleteAdminUser(user.id);
                 toast.success("Utilisateur supprimé avec succès.");
-                // Since this component is deep in the tree and we don't have a shared context for refresh yet,
-                // we might need to rely on the user refreshing or implement a context later.
-                // For a better UX without context, we could force reload:
-                window.location.reload();
+                // Refresh the table data if callback is provided
+                if (onRefresh) {
+                    await onRefresh();
+                } else {
+                    // Fallback: reload page if no refresh callback
+                    window.location.reload();
+                }
             } catch (error) {
                 console.error("Failed to delete user", error);
                 toast.error("Erreur lors de la suppression.");
@@ -61,7 +65,7 @@ export function AdminActions({ row }: AdminActionsProps) {
                 onOpenChange={setIsEditModalOpen}
                 mode="edit"
                 initialData={user}
-                onSaved={() => window.location.reload()} // Fallback refresh
+                onSaved={onRefresh || (() => window.location.reload())} // Use callback if provided
             />
         </>
     );

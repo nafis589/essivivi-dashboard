@@ -85,11 +85,17 @@ export function MapComponent({
 
         // Récupérer les données
         const [deliveryMarkers, agentPositions, zones, heatmapData, routes] = await Promise.all([
-          cartographyService.getDeliveryMarkers({ date: selectedDate, zone: selectedZone, agent: selectedAgent }),
-          cartographyService.getAgentPositions(selectedZone),
+          cartographyService.getDeliveryMarkers({
+            date: selectedDate,
+            zone: selectedZone,
+            agent: selectedAgent,
+          }),
+          cartographyService.getAgentPositions({
+            zone: selectedZone,
+          }),
           cartographyService.getServiceZones(),
-          showHeatmap ? cartographyService.getHeatmapData(selectedZone) : Promise.resolve([]),
-          showRoutes ? cartographyService.getOptimizedRoutes(selectedAgent) : Promise.resolve([]),
+          showHeatmap ? cartographyService.getHeatmapData({ zone: selectedZone, date: selectedDate }) : Promise.resolve([]),
+          showRoutes ? cartographyService.getOptimizedRoutes({ agent: selectedAgent, date: selectedDate }) : Promise.resolve([]),
         ]);
 
         // Nettoyer les anciens marqueurs et couches
@@ -106,6 +112,10 @@ export function MapComponent({
 
         // Afficher les zones de chalandise
         zones.forEach((zone) => {
+          // Valider les coordonnées du centre
+          if (!zone.center || !zone.center[0] || !zone.center[1] || isNaN(zone.center[0]) || isNaN(zone.center[1])) {
+            return;
+          }
           const circle = L.circle([zone.center[0], zone.center[1]], {
             color: zone.color,
             fillColor: zone.color,
@@ -120,6 +130,10 @@ export function MapComponent({
 
         // Afficher les marqueurs de livraison
         deliveryMarkers.forEach((marker: DeliveryMarker) => {
+          // Valider les coordonnées
+          if (!marker.lat || !marker.lng || isNaN(marker.lat) || isNaN(marker.lng)) {
+            return;
+          }
           const leafletMarker = L.marker([marker.lat, marker.lng], {
             icon: createMarkerIcon("delivery", marker.status),
           })
@@ -145,6 +159,10 @@ export function MapComponent({
 
         // Afficher les positions des agents
         agentPositions.forEach((agent: AgentPosition) => {
+          // Valider les coordonnées
+          if (!agent.lat || !agent.lng || isNaN(agent.lat) || isNaN(agent.lng)) {
+            return;
+          }
           const leafletMarker = L.marker([agent.lat, agent.lng], {
             icon: createMarkerIcon("agent", agent.status),
           })
@@ -171,7 +189,9 @@ export function MapComponent({
 
         // Afficher la heatmap si activée
         if (showHeatmap && heatmapData.length > 0) {
-          const heatmapPoints: [number, number, number][] = heatmapData.map((p: HeatmapPoint) => [
+          const heatmapPoints: [number, number, number][] = heatmapData
+            .filter((p: HeatmapPoint) => p.lat && p.lng && !isNaN(p.lat) && !isNaN(p.lng))
+            .map((p: HeatmapPoint) => [
             p.lat,
             p.lng,
             p.intensity,
@@ -286,3 +306,5 @@ export function MapComponent({
     </Card>
   );
 }
+
+export default MapComponent;

@@ -12,7 +12,7 @@ import { cn, formatCurrency } from "@/lib/utils";
 import { actionItems, regionSalesData, salesPipelineChartConfig, salesPipelineChartData } from "./crm.config";
 
 export function OperationalCards() {
-  const totalSales = regionSalesData.reduce((sum, region) => sum + region.sales, 0);
+  const totalSales = regionSalesData.reduce((sum: number, region) => sum + region.sales, 0);
   return (
     <div className="grid grid-cols-1 gap-4 *:data-[slot=card]:shadow-xs sm:grid-cols-2 xl:grid-cols-3">
       <Card>
@@ -43,7 +43,7 @@ export function OperationalCards() {
         </CardHeader>
         <CardContent>
           <div className="space-y-2.5">
-            {regionSalesData.map((region) => (
+            {regionSalesData.map((region: any) => (
               <div key={region.region} className="space-y-0.5">
                 <div className="flex items-center justify-between">
                   <span className="font-medium text-sm">{region.region}</span>
@@ -73,7 +73,7 @@ export function OperationalCards() {
           <div className="flex justify-between gap-1 text-muted-foreground text-xs">
             <span>{regionSalesData.length} regions tracked</span>
             <span>•</span>
-            <span>{regionSalesData.filter((r) => r.isPositive).length} regions growing</span>
+            <span>{regionSalesData.filter((r: any) => r.isPositive).length} regions growing</span>
           </div>
         </CardFooter>
       </Card>
@@ -84,7 +84,7 @@ export function OperationalCards() {
         </CardHeader>
         <CardContent>
           <ul className="space-y-2.5">
-            {actionItems.map((item) => (
+            {actionItems.map((item: any) => (
               <li key={item.id} className="space-y-2 rounded-md border px-3 py-2">
                 <div className="flex items-center gap-2">
                   <Checkbox defaultChecked={item.checked} />

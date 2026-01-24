@@ -77,3 +77,5 @@ export const columns: ColumnDef<Order>[] = [
     cell: ({ row }) => <AssignAgentDrawer order={row.original} />,
   },
 ];
+
+export const dashboardColumns = columns;

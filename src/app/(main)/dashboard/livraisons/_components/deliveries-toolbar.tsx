@@ -53,7 +53,7 @@ export function DeliveriesToolbar({ table }: DeliveriesToolbarProps) {
                 row.original.agentName,
                 row.original.clientName,
                 row.original.amount,
-                row.original.status,
+                row.original.statut,
                 row.original.date
             ].join(","))
         ].join("\n");

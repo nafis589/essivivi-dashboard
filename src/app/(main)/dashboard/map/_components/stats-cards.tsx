@@ -27,7 +27,9 @@ export function MapStatsCards({ selectedDate, selectedZone, selectedAgent }: Map
             zone: selectedZone,
             agent: selectedAgent,
           }),
-          cartographyService.getAgentPositions(selectedZone),
+          cartographyService.getAgentPositions({
+            zone: selectedZone,
+          }),
         ]);
         setDeliveryMarkers(markers);
         setAgentPositions(agents);
@@ -156,3 +158,5 @@ export function MapStatsCards({ selectedDate, selectedZone, selectedAgent }: Map
     </div>
   );
 }
+
+export default MapStatsCards;

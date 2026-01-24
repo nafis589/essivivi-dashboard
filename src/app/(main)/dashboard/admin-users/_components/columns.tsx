@@ -7,7 +7,9 @@ import { DataTableColumnHeader } from "@/components/data-table/data-table-column
 import { AdminActions } from "./admin-actions";
 import type { AdminUser } from "./schema";
 
-export const columns: ColumnDef<AdminUser>[] = [
+export const createAdminUserColumns = (
+  onRefresh?: () => Promise<void>
+): ColumnDef<AdminUser>[] => [
     {
         id: "select",
         header: ({ table }) => (
@@ -66,8 +68,11 @@ export const columns: ColumnDef<AdminUser>[] = [
     },
     {
         id: "actions",
-        cell: ({ row }) => <AdminActions row={row} />,
+        cell: ({ row }) => <AdminActions row={row} onRefresh={onRefresh} />,
         enableSorting: false,
         enableHiding: false,
     },
 ];
+
+// Export default columns for backwards compatibility
+export const columns = createAdminUserColumns();

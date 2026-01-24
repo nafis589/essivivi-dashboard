@@ -14,7 +14,7 @@ import {
 } from "./crm.config";
 
 export function InsightCards() {
-  const totalLeads = leadsBySourceChartData.reduce((acc, curr) => acc + curr.leads, 0);
+  const totalLeads = leadsBySourceChartData.reduce((acc: number, curr) => acc + curr.leads, 0);
 
   return (
     <div className="grid grid-cols-1 gap-4 *:data-[slot=card]:shadow-xs sm:grid-cols-2 xl:grid-cols-5">
@@ -70,11 +70,11 @@ export function InsightCards() {
                 align="right"
                 content={() => (
                   <ul className="ml-8 flex flex-col gap-3">
-                    {leadsBySourceChartData.map((item) => (
+                    {leadsBySourceChartData.map((item: any) => (
                       <li key={item.source} className="flex w-36 items-center justify-between">
                         <span className="flex items-center gap-2 capitalize">
                           <span className="size-2.5 rounded-full" style={{ background: item.fill }} />
-                          {leadsBySourceChartConfig[item.source].label}
+                          {leadsBySourceChartConfig[item.source as keyof typeof leadsBySourceChartConfig].label}
                         </span>
                         <span className="tabular-nums">{item.leads}</span>
                       </li>

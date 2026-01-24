@@ -37,7 +37,7 @@ export function TableCards() {
 
   const table = useDataTableInstance({
     data,
-    columns: clientsColumns,
+    columns: clientsColumns as any,
     getRowId: (row) => row.id,
   });
 
@@ -59,7 +59,7 @@ export function TableCards() {
         </CardHeader>
         <CardContent className="flex size-full flex-col gap-4">
           <div className="overflow-hidden rounded-md border">
-            <DataTable table={table} columns={clientsColumns} />
+            <DataTable table={table} columns={clientsColumns as any} />
           </div>
           <DataTablePagination table={table} />
         </CardContent>

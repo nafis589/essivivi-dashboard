@@ -13,7 +13,7 @@ export default function LoginV1() {
           <div className="space-y-6">
             <Command className="mx-auto size-12 text-primary-foreground" />
             <div className="space-y-2">
-              <h1 className="font-light text-5xl text-primary-foreground">Hello again</h1>
+              <h1 className="font-light text-5xl text-primary-foreground">Bienvenu sur essivivi</h1>
               <p className="text-primary-foreground/80 text-xl">Login to continue</p>
             </div>
           </div>

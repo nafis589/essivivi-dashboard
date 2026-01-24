@@ -60,11 +60,11 @@ const DeliveryModal: React.FC<DeliveryModalProps> = ({
                             <div className="px-6 pb-6 space-y-6">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <FormField label="ID Livraison" placeholder="LIV-001" value={initialData?.id} disabled />
-                                    <FormField label="Statut" value={initialData?.status} disabled />
+                                    <FormField label="Statut" value={initialData?.statut} disabled />
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <FormField label="ID Agent" placeholder="AGT-001" value={initialData?.agentId} disabled />
+                                    <FormField label="ID Agent" placeholder="AGT-001" value={initialData?.agent} disabled />
                                     <FormField label="Nom Agent" placeholder="Nom de l'agent" value={initialData?.agentName} disabled />
                                 </div>
 

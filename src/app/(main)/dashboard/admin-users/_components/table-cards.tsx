@@ -8,9 +8,9 @@ import { DataTableViewOptions } from "@/components/data-table/data-table-view-op
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDataTableInstance } from "@/hooks/use-data-table-instance";
-import { columns } from "./columns";
+import { createAdminUserColumns } from "./columns";
 import { AdminUserDrawer } from "./admin-user-drawer";
-import { adminUserService, type AdminUser as BackendAdminUser } from "@/services/admin-user.service";
+import { adminUserService } from "@/services/admin-user.service";
 import { type AdminUser } from "./schema";
 import { toast } from "sonner";
 
@@ -27,13 +27,27 @@ export function TableCards() {
       // Backend: role: "super_admin" | "gestionnaire" | "superviseur", status: "actif" | "inactif"
       // Frontend: role: "Super Admin" | "Gestionnaire" | "Superviseur", status: "Actif" | "Inactif"
 
+      const roleMap: Record<string, "Super Admin" | "Gestionnaire" | "Superviseur"> = {
+        super_admin: "Super Admin",
+        gestionnaire: "Gestionnaire",
+        superviseur: "Superviseur",
+      };
+
+      const statusMap: Record<string, "Actif" | "Inactif"> = {
+        actif: "Actif",
+        inactif: "Inactif",
+      };
+
       const transformedData: AdminUser[] = (Array.isArray(results) ? results : []).map((user: any) => ({
         id: user.id || "",
         name: user.name || "Inconnu",
-        email: user.email || "",
-        role: mapRole(user.role),
-        status: mapStatus(user.status),
-        lastConnection: user.lastConnection || "Jamais",
+        email: user.user_email || user.email || "", // Backend returns user_email
+        role: roleMap[user.role] || "Superviseur",
+        status: statusMap[user.status] || "Actif",
+        lastConnection: user.last_connection ? new Date(user.last_connection).toLocaleDateString("fr-FR") : "Jamais",
+        company: "",
+        source: "",
+        lastActivity: user.updated_at ? new Date(user.updated_at).toLocaleDateString("fr-FR") : "",
       }));
 
       setData(transformedData);
@@ -45,26 +59,12 @@ export function TableCards() {
     }
   }, []);
 
+  // Load data on component mount
   React.useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  const mapRole = (role: string): any => {
-    switch (role) {
-      case "super_admin": return "Super Admin";
-      case "gestionnaire": return "Gestionnaire";
-      case "superviseur": return "Superviseur";
-      default: return "Superviseur"; // Fallback
-    }
-  };
-
-  const mapStatus = (status: string): any => {
-    switch (status) {
-      case "actif": return "Actif";
-      case "inactif": return "Inactif";
-      default: return "Actif";
-    }
-  }
+  const columns = createAdminUserColumns(fetchData);
 
   const table = useDataTableInstance({
     data,

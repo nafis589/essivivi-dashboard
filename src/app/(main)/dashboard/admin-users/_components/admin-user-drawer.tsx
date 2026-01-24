@@ -77,9 +77,27 @@ export function AdminUserDrawer({
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        // Validation
+        if (!name.trim()) {
+            toast.error("Le nom est requis.");
+            return;
+        }
+        if (!email.trim()) {
+            toast.error("L'email est requis.");
+            return;
+        }
+
         if (mode === "create") {
-            if (!password || password !== confirmPassword) {
-                toast.error("Les mots de passe ne correspondent pas ou sont vides.");
+            if (!password || !confirmPassword) {
+                toast.error("Les mots de passe sont requis.");
+                return;
+            }
+            if (password !== confirmPassword) {
+                toast.error("Les mots de passe ne correspondent pas.");
+                return;
+            }
+            if (password.length < 8) {
+                toast.error("Le mot de passe doit contenir au moins 8 caractères.");
                 return;
             }
         }
@@ -87,9 +105,21 @@ export function AdminUserDrawer({
         try {
             setLoading(true);
 
-            // Map to backend values
-            const backendRole = role === "Super Admin" ? "super_admin" : role.toLowerCase();
-            const backendStatus = status.toLowerCase();
+            // Map frontend role display to backend values
+            const roleMap: Record<string, "super_admin" | "gestionnaire" | "superviseur"> = {
+                "Super Admin": "super_admin",
+                "Gestionnaire": "gestionnaire",
+                "Superviseur": "superviseur",
+            };
+
+            // Map frontend status display to backend values
+            const statusMap: Record<string, "actif" | "inactif"> = {
+                "Actif": "actif",
+                "Inactif": "inactif",
+            };
+
+            const backendRole = roleMap[role] || "superviseur";
+            const backendStatus = statusMap[status] || "actif";
 
             if (mode === "create") {
                 await adminUserService.createAdminUser({
@@ -97,25 +127,42 @@ export function AdminUserDrawer({
                     email,
                     role: backendRole,
                     status: backendStatus,
-                    password
+                    password,
+                    confirm_password: confirmPassword,
                 });
                 toast.success("Administrateur créé avec succès !");
             } else {
-                if (!initialData?.id) return;
+                if (!initialData?.id) {
+                    toast.error("ID utilisateur manquant.");
+                    return;
+                }
                 await adminUserService.updateAdminUser(initialData.id, {
                     name,
                     role: backendRole,
                     status: backendStatus,
-                    // Email usually not editable or handled differently, ignoring for update as per typical flow unless specified
                 });
                 toast.success("Administrateur mis à jour avec succès !");
             }
 
             if (onSaved) onSaved();
             onOpenChange(false);
-        } catch (error) {
+        } catch (error: any) {
             console.error("Failed to save admin user", error);
-            toast.error("Une erreur est survenue lors de l'enregistrement.");
+            
+            // Handle specific API errors
+            if (error.response?.data) {
+                const errorData = error.response.data;
+                if (typeof errorData === 'object') {
+                    const errorMessages = Object.entries(errorData)
+                        .map(([key, value]) => `${key}: ${value}`)
+                        .join(", ");
+                    toast.error(`Erreur: ${errorMessages}`);
+                } else {
+                    toast.error(errorData.message || "Une erreur est survenue.");
+                }
+            } else {
+                toast.error("Une erreur est survenue lors de l'enregistrement.");
+            }
         } finally {
             setLoading(false);
         }
