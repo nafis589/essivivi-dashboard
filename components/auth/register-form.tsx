@@ -81,153 +81,115 @@ export function RegisterForm() {
   }
 
   return (
-    <Card className="w-full max-w-2xl mx-auto shadow-lg border-muted/50 bg-card/50 backdrop-blur-sm">
-      <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-bold tracking-tight">Créer un compte</CardTitle>
-        <CardDescription>
-          Remplissez les informations ci-dessous pour démarrer avec FlowCommerce.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="firstName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Prénom</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <UserCircle className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
-                        <Input placeholder="Jean" className="pl-9" {...field} />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="lastName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nom</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <UserCircle className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
-                        <Input placeholder="Dupont" className="pl-9" {...field} />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-               <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Identifiant / Nom public</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <User className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
-                        <Input placeholder="jean_dupont" className="pl-9" {...field} />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="companyName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Entreprise</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Building className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
-                        <Input placeholder="Ma Boutique SARL" className="pl-9" {...field} />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email professionnel</FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
-                      <Input placeholder="exemple@entreprise.com" className="pl-9" autoComplete="email" {...field} />
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Mot de passe</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
-                        <Input type="password" placeholder="••••••••" className="pl-9" autoComplete="new-password" {...field} />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="confirmPassword"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Confirmer le mot de passe</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
-                        <Input type="password" placeholder="••••••••" className="pl-9" autoComplete="new-password" {...field} />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <Button type="submit" className="w-full h-11" disabled={loading}>
-              {loading && <Loader2 className="mr-2 size-4 animate-spin" />}
-              Créer mon compte
-            </Button>
-          </form>
-        </Form>
-      </CardContent>
-      <CardFooter>
-        <div className="text-sm text-center text-muted-foreground w-full">
-          Vous avez déjà un compte ?{" "}
-          <Link href="/sign-in" className="text-primary font-medium hover:underline">
-            Se connecter
-          </Link>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="firstName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-foreground font-medium text-xs">Prénom</FormLabel>
+                <FormControl>
+                  <Input placeholder="Jean" className="bg-background" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="lastName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-foreground font-medium text-xs">Nom</FormLabel>
+                <FormControl>
+                  <Input placeholder="Dupont" className="bg-background" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
-      </CardFooter>
-    </Card>
+
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-foreground font-medium text-xs">Email professionnel</FormLabel>
+              <FormControl>
+                <Input placeholder="exemple@entreprise.com" className="bg-background" autoComplete="email" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-foreground font-medium text-xs">Identifiant</FormLabel>
+                <FormControl>
+                  <Input placeholder="jean_dupont" className="bg-background" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="companyName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-foreground font-medium text-xs">Entreprise</FormLabel>
+                <FormControl>
+                  <Input placeholder="Ma Boutique SARL" className="bg-background" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-foreground font-medium text-xs">Mot de passe</FormLabel>
+                <FormControl>
+                  <Input type="password" placeholder="••••••••" className="bg-background" autoComplete="new-password" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="confirmPassword"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-foreground font-medium text-xs">Confirmer</FormLabel>
+                <FormControl>
+                  <Input type="password" placeholder="••••••••" className="bg-background" autoComplete="new-password" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <Button type="submit" className="w-full h-11 transition-all active:scale-[0.98]" disabled={loading}>
+          {loading && <Loader2 className="mr-2 size-4 animate-spin" />}
+          Créer un compte
+        </Button>
+      </form>
+    </Form>
   );
 }
+
