@@ -13,6 +13,24 @@ import { SaleDetailModal } from "./SaleDetailModal";
 import { RefundModal } from "./RefundModal";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from "@/components/ui/pagination";
 import { Separator } from "@/components/ui/separator";
+import {
+    DropdownMenu,
+    DropdownMenuCheckboxItem,
+    DropdownMenuContent,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+
+const allColumns = [
+    "N° Facture",
+    "Date / Heure",
+    "Client",
+    "Articles",
+    "Total",
+    "Paiement",
+    "Statut",
+    "Actions",
+] as const;
 
 export function SalesPage() {
     const [sales, setSales] = useState<Sale[]>(MOCK_SALES);
@@ -30,6 +48,16 @@ export function SalesPage() {
     // Modals state
     const [selectedSaleDetail, setSelectedSaleDetail] = useState<Sale | null>(null);
     const [selectedSaleRefund, setSelectedSaleRefund] = useState<Sale | null>(null);
+
+    const [visibleColumns, setVisibleColumns] = useState<string[]>([...allColumns]);
+
+    const toggleColumn = (col: string) => {
+        setVisibleColumns((prev) =>
+            prev.includes(col)
+                ? prev.filter((c) => c !== col)
+                : [...prev, col]
+        );
+    };
 
     const [isExporting, setIsExporting] = useState(false);
 
@@ -122,15 +150,36 @@ export function SalesPage() {
                 averageSaleAmount={stats.averageSaleAmount}
             />
 
-            <div className="space-y-4">
-                <div className="flex flex-col sm:flex-row justify-between gap-4">
-                    <SalesSearch value={searchQuery} onChange={setSearchQuery} />
-                    <SalesFilters
-                        dateFilter={dateFilter}
-                        onDateFilterChange={setDateFilter}
-                        statusFilter={statusFilter}
-                        onStatusFilterChange={setStatusFilter}
-                    />
+            <div className="container-none space-y-4 p-4 border border-border rounded-lg bg-background shadow-sm overflow-x-auto">
+                <div className="flex flex-wrap gap-4 items-center justify-between mb-6">
+                    <div className="flex gap-2 flex-wrap">
+                        <SalesSearch value={searchQuery} onChange={setSearchQuery} />
+                        <SalesFilters
+                            dateFilter={dateFilter}
+                            onDateFilterChange={setDateFilter}
+                            statusFilter={statusFilter}
+                            onStatusFilterChange={setStatusFilter}
+                        />
+                    </div>
+
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="sm">
+                                Colonnes
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-48" align="end">
+                            {allColumns.map((col) => (
+                                <DropdownMenuCheckboxItem
+                                    key={col}
+                                    checked={visibleColumns.includes(col)}
+                                    onCheckedChange={() => toggleColumn(col)}
+                                >
+                                    {col}
+                                </DropdownMenuCheckboxItem>
+                            ))}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
 
                 <div className="overflow-x-auto overflow-y-hidden">
@@ -139,14 +188,16 @@ export function SalesPage() {
                         isLoading={isLoading}
                         onViewDetails={setSelectedSaleDetail}
                         onRefund={setSelectedSaleRefund}
+                        visibleColumns={visibleColumns}
                     />
                 </div>
+            </div>
 
-                {totalPages > 1 && (
-                    <div className="pt-4 flex justify-between items-center text-sm text-slate-500 font-medium">
-                        <div>
-                            Affichage de {((currentPage - 1) * itemsPerPage) + 1} à {Math.min(currentPage * itemsPerPage, filteredSales.length)} sur {filteredSales.length} ventes
-                        </div>
+            {totalPages > 1 && (
+                <div className="pt-4 flex justify-between items-center text-sm text-slate-500 font-medium px-4">
+                    <div>
+                        Affichage de {((currentPage - 1) * itemsPerPage) + 1} à {Math.min(currentPage * itemsPerPage, filteredSales.length)} sur {filteredSales.length} ventes
+                    </div>
                         <Pagination className="justify-end cursor-pointer">
                             <PaginationContent>
                                 <PaginationItem>
@@ -180,7 +231,6 @@ export function SalesPage() {
                         </Pagination>
                     </div>
                 )}
-            </div>
 
             <SaleDetailModal
                 sale={selectedSaleDetail}

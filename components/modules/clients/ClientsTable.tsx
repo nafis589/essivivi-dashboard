@@ -10,9 +10,10 @@ interface ClientsTableProps {
     onEdit: (client: Client) => void
     isLoading?: boolean
     selectedClientId?: number
+    visibleColumns: string[]
 }
 
-export function ClientsTable({ clients, onView, onEdit, isLoading, selectedClientId }: ClientsTableProps) {
+export function ClientsTable({ clients, onView, onEdit, isLoading, selectedClientId, visibleColumns }: ClientsTableProps) {
     if (isLoading) {
         return (
             <div className="bg-white overflow-hidden flex justify-center items-center h-64">
@@ -38,14 +39,28 @@ export function ClientsTable({ clients, onView, onEdit, isLoading, selectedClien
     }
 
     return (
-        <div className="bg-white overflow-hidden">
+        <div className="bg-white">
             <Table>
-                <TableHeader className="bg-slate-50/50 border-b border-slate-200/60">
+                <TableHeader className="bg-slate-50/50">
                     <TableRow className="hover:bg-transparent">
-                        <TableHead className="text-[11px] uppercase tracking-wider font-bold text-slate-500 h-10 py-0 pl-4 pr-6">Client</TableHead>
-                        <TableHead className="text-[11px] uppercase tracking-wider font-bold text-slate-500 h-10 py-0 px-4 hidden md:table-cell">Contact</TableHead>
-                        <TableHead className="text-[11px] uppercase tracking-wider font-bold text-slate-500 h-10 py-0 px-4 text-right">Dépenses</TableHead>
-                        <TableHead className="text-[11px] uppercase tracking-wider font-bold text-slate-500 h-10 py-0 pr-4 text-right">Actions</TableHead>
+                        {visibleColumns.includes("Client") && (
+                            <TableHead className="text-[11px] uppercase tracking-wider font-bold text-slate-500 h-10 py-0 pl-4 pr-6">Client</TableHead>
+                        )}
+                        {visibleColumns.includes("Contact") && (
+                            <TableHead className="text-[11px] uppercase tracking-wider font-bold text-slate-500 h-10 py-0 px-4 hidden md:table-cell">Contact</TableHead>
+                        )}
+                        {visibleColumns.includes("Achats") && (
+                            <TableHead className="text-[11px] uppercase tracking-wider font-bold text-slate-500 h-10 py-0 px-4 text-right">Achats</TableHead>
+                        )}
+                        {visibleColumns.includes("Dépenses") && (
+                            <TableHead className="text-[11px] uppercase tracking-wider font-bold text-slate-500 h-10 py-0 px-4 text-right">Dépenses</TableHead>
+                        )}
+                        {visibleColumns.includes("Dernière visite") && (
+                            <TableHead className="text-[11px] uppercase tracking-wider font-bold text-slate-500 h-10 py-0 px-4 text-right">Dernière visite</TableHead>
+                        )}
+                        {visibleColumns.includes("Actions") && (
+                            <TableHead className="text-[11px] uppercase tracking-wider font-bold text-slate-500 h-10 py-0 pr-4 text-right">Actions</TableHead>
+                        )}
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -56,6 +71,7 @@ export function ClientsTable({ clients, onView, onEdit, isLoading, selectedClien
                             onView={onView}
                             onEdit={onEdit}
                             isSelected={selectedClientId === client.id}
+                            visibleColumns={visibleColumns}
                         />
                     ))}
                 </TableBody>

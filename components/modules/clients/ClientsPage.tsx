@@ -16,6 +16,21 @@ import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import {
+    DropdownMenu,
+    DropdownMenuCheckboxItem,
+    DropdownMenuContent,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+const allColumns = [
+    "Client",
+    "Contact",
+    "Achats",
+    "Dépenses",
+    "Dernière visite",
+    "Actions",
+] as const;
 
 export function ClientsPage() {
     const [clients, setClients] = useState<Client[]>(mockClients)
@@ -28,6 +43,15 @@ export function ClientsPage() {
     const [isImportExportOpen, setIsImportExportOpen] = useState(false)
 
     const [selectedClient, setSelectedClient] = useState<Client | null>(null)
+    const [visibleColumns, setVisibleColumns] = useState<string[]>([...allColumns]);
+
+    const toggleColumn = (col: string) => {
+        setVisibleColumns((prev) =>
+            prev.includes(col)
+                ? prev.filter((c) => c !== col)
+                : [...prev, col]
+        );
+    };
 
     // Filtrage et recherche
     const filteredClients = useMemo(() => {
@@ -149,19 +173,41 @@ export function ClientsPage() {
                     </div>
 
                     {/* ── Main View: List ──────────────────────────────────── */}
-                    <div className="flex flex-col flex-1 overflow-hidden bg-white">
+                    <div className="container-none space-y-4 p-4 border border-border rounded-lg bg-background shadow-sm overflow-x-auto">
                         {/* Toolbar */}
-                        <div className="flex flex-col gap-3 px-4 py-3.5 bg-slate-50/50 shrink-0">
-                            <ClientsSearch value={searchQuery} onChange={setSearchQuery} />
-                            <ClientsFilters value={filterType} onChange={setFilterType} />
+                        <div className="flex flex-wrap gap-4 items-center justify-between mb-6">
+                            <div className="flex gap-2 flex-wrap">
+                                <ClientsSearch value={searchQuery} onChange={setSearchQuery} />
+                                <ClientsFilters value={filterType} onChange={setFilterType} />
+                            </div>
+
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="outline" size="sm">
+                                        Colonnes
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent className="w-48" align="end">
+                                    {allColumns.map((col) => (
+                                        <DropdownMenuCheckboxItem
+                                            key={col}
+                                            checked={visibleColumns.includes(col)}
+                                            onCheckedChange={() => toggleColumn(col)}
+                                        >
+                                            {col}
+                                        </DropdownMenuCheckboxItem>
+                                    ))}
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         </div>
 
                         {/* Table */}
-                        <div className="flex-1 overflow-auto">
+                        <div className="flex-1">
                             <ClientsTable
                                 clients={filteredClients}
                                 onView={handleViewClient}
                                 onEdit={handleEditClient}
+                                visibleColumns={visibleColumns}
                             />
                         </div>
                     </div>

@@ -10,9 +10,10 @@ interface SalesTableProps {
     isLoading: boolean;
     onViewDetails: (sale: Sale) => void;
     onRefund: (sale: Sale) => void;
+    visibleColumns: string[];
 }
 
-export function SalesTable({ sales, isLoading, onViewDetails, onRefund }: SalesTableProps) {
+export function SalesTable({ sales, isLoading, onViewDetails, onRefund, visibleColumns }: SalesTableProps) {
     if (isLoading) {
         return (
             <div className="bg-white overflow-hidden">
@@ -66,18 +67,34 @@ export function SalesTable({ sales, isLoading, onViewDetails, onRefund }: SalesT
     }
 
     return (
-        <div className="bg-white overflow-hidden">
+        <div className="bg-white">
             <Table>
-                <TableHeader className="bg-slate-50/50 border-b border-slate-200/60">
+                <TableHeader className="bg-slate-50/50">
                     <TableRow className="hover:bg-transparent">
-                        <TableHead className="text-[11px] uppercase tracking-wider font-bold text-slate-500 h-10 py-0 pl-4 pr-6">N° Facture</TableHead>
-                        <TableHead className="text-[11px] uppercase tracking-wider font-bold text-slate-500 h-10 py-0 px-6">Date / Heure</TableHead>
-                        <TableHead className="text-[11px] uppercase tracking-wider font-bold text-slate-500 h-10 py-0 px-6">Client</TableHead>
-                        <TableHead className="text-[11px] uppercase tracking-wider font-bold text-slate-500 h-10 py-0 px-6">Articles</TableHead>
-                        <TableHead className="text-[11px] uppercase tracking-wider font-bold text-slate-500 h-10 py-0 px-6">Total</TableHead>
-                        <TableHead className="text-[11px] uppercase tracking-wider font-bold text-slate-500 h-10 py-0 px-6">Paiement</TableHead>
-                        <TableHead className="text-[11px] uppercase tracking-wider font-bold text-slate-500 h-10 py-0 px-6">Statut</TableHead>
-                        <TableHead className="text-right text-[11px] uppercase tracking-wider font-bold text-slate-500 h-10 py-0 pr-4">Actions</TableHead>
+                        {visibleColumns.includes("N° Facture") && (
+                            <TableHead className="text-[11px] uppercase tracking-wider font-bold text-slate-500 h-10 py-0 pl-4 pr-6">N° Facture</TableHead>
+                        )}
+                        {visibleColumns.includes("Date / Heure") && (
+                            <TableHead className="text-[11px] uppercase tracking-wider font-bold text-slate-500 h-10 py-0 px-6">Date / Heure</TableHead>
+                        )}
+                        {visibleColumns.includes("Client") && (
+                            <TableHead className="text-[11px] uppercase tracking-wider font-bold text-slate-500 h-10 py-0 px-6">Client</TableHead>
+                        )}
+                        {visibleColumns.includes("Articles") && (
+                            <TableHead className="text-[11px] uppercase tracking-wider font-bold text-slate-500 h-10 py-0 px-6">Articles</TableHead>
+                        )}
+                        {visibleColumns.includes("Total") && (
+                            <TableHead className="text-[11px] uppercase tracking-wider font-bold text-slate-500 h-10 py-0 px-6">Total</TableHead>
+                        )}
+                        {visibleColumns.includes("Paiement") && (
+                            <TableHead className="text-[11px] uppercase tracking-wider font-bold text-slate-500 h-10 py-0 px-6">Paiement</TableHead>
+                        )}
+                        {visibleColumns.includes("Statut") && (
+                            <TableHead className="text-[11px] uppercase tracking-wider font-bold text-slate-500 h-10 py-0 px-6">Statut</TableHead>
+                        )}
+                        {visibleColumns.includes("Actions") && (
+                            <TableHead className="text-right text-[11px] uppercase tracking-wider font-bold text-slate-500 h-10 py-0 pr-4">Actions</TableHead>
+                        )}
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -87,6 +104,7 @@ export function SalesTable({ sales, isLoading, onViewDetails, onRefund }: SalesT
                             sale={sale}
                             onViewDetails={onViewDetails}
                             onRefund={onRefund}
+                            visibleColumns={visibleColumns}
                         />
                     ))}
                 </TableBody>
