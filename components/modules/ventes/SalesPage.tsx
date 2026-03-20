@@ -152,34 +152,35 @@ export function SalesPage() {
 
             <div className="container-none space-y-4 p-4 border border-border rounded-lg bg-background shadow-sm overflow-x-auto">
                 <div className="flex flex-wrap gap-4 items-center justify-between mb-6">
-                    <div className="flex gap-2 flex-wrap">
-                        <SalesSearch value={searchQuery} onChange={setSearchQuery} />
+                    <SalesSearch value={searchQuery} onChange={setSearchQuery} />
+
+                    <div className="flex gap-2 items-center">
                         <SalesFilters
                             dateFilter={dateFilter}
                             onDateFilterChange={setDateFilter}
                             statusFilter={statusFilter}
                             onStatusFilterChange={setStatusFilter}
                         />
-                    </div>
 
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="sm">
-                                Colonnes
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className="w-48" align="end">
-                            {allColumns.map((col) => (
-                                <DropdownMenuCheckboxItem
-                                    key={col}
-                                    checked={visibleColumns.includes(col)}
-                                    onCheckedChange={() => toggleColumn(col)}
-                                >
-                                    {col}
-                                </DropdownMenuCheckboxItem>
-                            ))}
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="outline" size="sm">
+                                    Colonnes
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="w-48" align="end">
+                                {allColumns.map((col) => (
+                                    <DropdownMenuCheckboxItem
+                                        key={col}
+                                        checked={visibleColumns.includes(col)}
+                                        onCheckedChange={() => toggleColumn(col)}
+                                    >
+                                        {col}
+                                    </DropdownMenuCheckboxItem>
+                                ))}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
                 </div>
 
                 <div className="overflow-x-auto overflow-y-hidden">

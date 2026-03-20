@@ -135,39 +135,40 @@ export default function ProduitsPage() {
 
       <div className="container-none space-y-4 p-4 border border-border rounded-lg bg-background shadow-sm overflow-x-auto">
         <div className="flex flex-wrap gap-4 items-center justify-between mb-6">
-          <div className="flex gap-2 flex-wrap">
-            <Input
-              placeholder="Rechercher un produit..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-48"
-            />
+          <Input
+            placeholder="Rechercher un produit..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-48"
+          />
+
+          <div className="flex gap-2 items-center">
             <Input
               placeholder="Catégorie..."
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="w-48"
+              className="w-32"
             />
-          </div>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                Colonnes
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-48" align="end">
-              {allColumns.map((col) => (
-                <DropdownMenuCheckboxItem
-                  key={col}
-                  checked={visibleColumns.includes(col)}
-                  onCheckedChange={() => toggleColumn(col)}
-                >
-                  {col}
-                </DropdownMenuCheckboxItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  Colonnes
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-48" align="end">
+                {allColumns.map((col) => (
+                  <DropdownMenuCheckboxItem
+                    key={col}
+                    checked={visibleColumns.includes(col)}
+                    onCheckedChange={() => toggleColumn(col)}
+                  >
+                    {col}
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
 
         <Table className="w-full">

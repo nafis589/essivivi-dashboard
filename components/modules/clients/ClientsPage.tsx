@@ -176,29 +176,30 @@ export function ClientsPage() {
                     <div className="container-none space-y-4 p-4 border border-border rounded-lg bg-background shadow-sm overflow-x-auto">
                         {/* Toolbar */}
                         <div className="flex flex-wrap gap-4 items-center justify-between mb-6">
-                            <div className="flex gap-2 flex-wrap">
-                                <ClientsSearch value={searchQuery} onChange={setSearchQuery} />
-                                <ClientsFilters value={filterType} onChange={setFilterType} />
-                            </div>
+                            <ClientsSearch value={searchQuery} onChange={setSearchQuery} />
 
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="outline" size="sm">
-                                        Colonnes
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent className="w-48" align="end">
-                                    {allColumns.map((col) => (
-                                        <DropdownMenuCheckboxItem
-                                            key={col}
-                                            checked={visibleColumns.includes(col)}
-                                            onCheckedChange={() => toggleColumn(col)}
-                                        >
-                                            {col}
-                                        </DropdownMenuCheckboxItem>
-                                    ))}
-                                </DropdownMenuContent>
-                            </DropdownMenu>
+                            <div className="flex gap-2 items-center">
+                                <ClientsFilters value={filterType} onChange={setFilterType} />
+
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="outline" size="sm">
+                                            Colonnes
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent className="w-48" align="end">
+                                        {allColumns.map((col) => (
+                                            <DropdownMenuCheckboxItem
+                                                key={col}
+                                                checked={visibleColumns.includes(col)}
+                                                onCheckedChange={() => toggleColumn(col)}
+                                            >
+                                                {col}
+                                            </DropdownMenuCheckboxItem>
+                                        ))}
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
                         </div>
 
                         {/* Table */}
