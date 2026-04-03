@@ -1,71 +1,66 @@
-/**
- * Domain types — Sales module
- * 
- * SINGLE SOURCE OF TRUTH for all sale-related types.
- */
-
-// ─── Sale Status ────────────────────────────────────────────────────────────────
-
-export type SaleStatus = 'paid' | 'refunded' | 'pending' | 'partially_refunded'
-
-// ─── Payment ────────────────────────────────────────────────────────────────────
-
-export type PaymentMethod = 'cash' | 'mobile' | 'card'
-
-// ─── Sale Customer (embedded reference) ─────────────────────────────────────────
+﻿export type SaleStatus = 'COMPLETED' | 'PENDING' | 'CANCELLED';
+export type PaymentMethod = 'CASH' | 'CARD' | 'MOBILE_MONEY';
 
 export interface SaleCustomer {
-  id: string
-  name: string
-  phone?: string
-  email?: string
+    id: number;
+    name: string;
+    phone?: string;
+    email?: string;
 }
-
-// ─── Sale Item ──────────────────────────────────────────────────────────────────
 
 export interface SaleItem {
-  id: string
-  productId: string
-  name: string
-  quantity: number
-  unitPrice: number
-  total: number
-  refundedQuantity: number
+    id?: number;
+    productId?: number;
+    name: string;
+    quantity: number;
+    price: number;
+    total: number;
+    refundedQuantity?: number;
 }
 
-// ─── Sale Entity ────────────────────────────────────────────────────────────────
+export interface SalePayment {
+    id?: number;
+    method: PaymentMethod;
+    amount: number;
+}
 
 export interface Sale {
-  id: string
-  invoiceNumber: string
-  date: string // ISO string
-  customer: SaleCustomer | null
-  items: SaleItem[]
-  subtotal: number
-  taxes: number
-  total: number
-  paymentMethod: PaymentMethod
-  status: SaleStatus
-  refundReason?: string
+    id: number;
+    invoiceNumber: string;
+    createdAt: string; // API uses createdAt instead of date
+    updatedAt?: string;
+    customer: SaleCustomer | null;
+    items?: SaleItem[];      // Optional because missing in list endpoint
+    payments?: SalePayment[];// Optional because missing in list endpoint
+    subtotal: number;
+    tax: number;
+    total: number;
+    status: SaleStatus;
+    userId?: string;
+    customerId?: number;
 }
-
-// ─── Sale Filters ───────────────────────────────────────────────────────────────
 
 export interface SalesFilterOptions {
-  dateRange: 'today' | 'this_week' | 'this_month' | 'custom'
-  customDateRange?: { start: Date; end: Date }
-  paymentMethod?: PaymentMethod | 'all'
-  status?: SaleStatus | 'all'
-  minAmount?: number
-  maxAmount?: number
-  searchQuery: string
+    dateRange: 'today' | 'this_week' | 'this_month' | 'custom';
+    customDateRange?: { start: Date; end: Date };
+    status?: SaleStatus | 'all';
+    searchQuery: string;
+    page: number;
+    limit: number;
 }
 
-// ─── Sales Stats ────────────────────────────────────────────────────────────────
-
 export interface SalesStats {
-  totalSalesCount: number
-  totalRevenue: number
-  todaySalesCount: number
-  averageSaleAmount: number
+    totalSales: number;
+    totalRevenue: number;
+    todayRevenue: number;
+    averageOrder: number;
+}
+
+export interface SalesListResponse {
+    data: Sale[];
+    pagination: {
+        page: number;
+        limit: number;
+        total: number;
+    };
 }

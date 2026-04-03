@@ -1,8 +1,8 @@
 import { Sale, SaleStatus, PaymentMethod } from './types';
 import { subDays, subHours, subMinutes } from 'date-fns';
 
-const statuses: SaleStatus[] = ['paid', 'paid', 'paid', 'refunded', 'pending', 'partially_refunded'];
-const paymentMethods: PaymentMethod[] = ['cash', 'mobile', 'card'];
+const statuses: SaleStatus[] = ['COMPLETED', 'COMPLETED', 'COMPLETED', 'CANCELLED', 'PENDING', 'CANCELLED'];
+const paymentMethods: PaymentMethod[] = ['CASH', 'MOBILE_MONEY', 'CARD'];
 
 const generateMockData = (): Sale[] => {
     const sales: Sale[] = [];
@@ -21,11 +21,11 @@ const generateMockData = (): Sale[] => {
             subtotal += total;
 
             items.push({
-                id: `item-${i}-${j}`,
-                productId: `prod-${j}`,
+                id: i * 100 + j,
+                productId: j,
                 name: `Produit ${Math.floor(Math.random() * 100)}`,
                 quantity: qty,
-                unitPrice: price,
+                price: price,
                 total: total,
                 refundedQuantity: i === 4 ? 1 : 0
             });
@@ -36,26 +36,27 @@ const generateMockData = (): Sale[] => {
         const date = subHours(subMinutes(subDays(now, Math.floor(Math.random() * 30)), Math.floor(Math.random() * 60)), Math.floor(Math.random() * 24)).toISOString();
 
         sales.push({
-            id: `sale-${i}`,
+            id: i,
             invoiceNumber: `F2024-${i.toString().padStart(5, '0')}`,
-            date: date,
+            createdAt: date,
             customer: isAnonymous ? null : {
-                id: `cust-${i}`,
+                id: i,
                 name: `Client ${i}`,
                 phone: `+33 6 ${Math.floor(10000000 + Math.random() * 90000000)}`
             },
             items,
             subtotal,
-            taxes,
+            tax: taxes,
             total: totalAmount,
-            paymentMethod: paymentMethods[i % paymentMethods.length],
+            payments: [{ method: paymentMethods[i % paymentMethods.length], amount: totalAmount }],
             status: statuses[i % statuses.length],
-            refundReason: i === 4 ? "Produit défectueux" : undefined
+            userId: "user-uuid"
         });
     }
 
     // Sort by date descending
-    return sales.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    return sales.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 };
 
 export const MOCK_SALES = generateMockData();
+

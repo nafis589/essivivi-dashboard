@@ -69,7 +69,7 @@ export function SalesTable({ sales, isLoading, onViewDetails, onRefund, visibleC
     return (
         <div className="bg-white">
             <Table>
-                <TableHeader className="bg-slate-50/50">
+                <TableHeader className="bg-slate-50">
                     <TableRow className="hover:bg-transparent">
                         {visibleColumns.includes("N° Facture") && (
                             <TableHead className="text-[11px] uppercase tracking-wider font-bold text-slate-500 h-10 py-0 pl-4 pr-6">N° Facture</TableHead>

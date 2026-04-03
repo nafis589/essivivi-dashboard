@@ -1,18 +1,16 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
-import { Sale } from "@/lib/modules/ventes/types";
-import { MOCK_SALES } from "@/lib/modules/ventes/mockData";
-import { calculateStats, exportToCSV } from "@/lib/modules/ventes/utils";
+import { useState, useMemo, useEffect, useCallback } from "react";
+import { Sale, SalesStats } from "@/lib/modules/ventes/types";
+import { fetchSales, getSalesStats, deleteSale, getSaleDetails } from "@/lib/modules/ventes/api";
+import { exportToCSV } from "@/lib/modules/ventes/utils";
 import { SaleStats } from "./SaleStats";
-import { SalesFilters } from "./SalesFilters";
 import { SalesSearch } from "./SalesSearch";
 import { ExportButton } from "./ExportButton";
 import { SalesTable } from "./SalesTable";
 import { SaleDetailModal } from "./SaleDetailModal";
 import { RefundModal } from "./RefundModal";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from "@/components/ui/pagination";
-import { Separator } from "@/components/ui/separator";
 import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
@@ -20,6 +18,8 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { RefreshCw } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const allColumns = [
     "N° Facture",
@@ -33,7 +33,8 @@ const allColumns = [
 ] as const;
 
 export function SalesPage() {
-    const [sales, setSales] = useState<Sale[]>(MOCK_SALES);
+    const [sales, setSales] = useState<Sale[]>([]);
+    const [stats, setStats] = useState<SalesStats | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     // Filters state
@@ -43,7 +44,9 @@ export function SalesPage() {
 
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 10; // Changed to 10 for demo, user wants 20
+    const [totalItems, setTotalItems] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+    const itemsPerPage = 10;
 
     // Modals state
     const [selectedSaleDetail, setSelectedSaleDetail] = useState<Sale | null>(null);
@@ -61,76 +64,80 @@ export function SalesPage() {
 
     const [isExporting, setIsExporting] = useState(false);
 
-    useEffect(() => {
-        // Simulate initial loading
-        const timer = setTimeout(() => {
-            setIsLoading(false);
-        }, 800);
-        return () => clearTimeout(timer);
-    }, []);
+    const loadData = useCallback(async () => {
+        setIsLoading(true);
+        try {
+            // Setup filter params matching API documentation
+            const params: any = {
+                page: currentPage,
+                limit: itemsPerPage,
+            };
 
-    // Filter Logic
-    const filteredSales = useMemo(() => {
-        return sales.filter(sale => {
-            // Status filter
-            if (statusFilter !== "all" && sale.status !== statusFilter) return false;
-
-            // Search filter
-            if (searchQuery) {
-                const query = searchQuery.toLowerCase();
-                const matchInvoice = sale.invoiceNumber.toLowerCase().includes(query);
-                const matchCustomer = sale.customer?.name.toLowerCase().includes(query) || false;
-                if (!matchInvoice && !matchCustomer) return false;
-            }
-
-            // Date filter (Simplified for mock purposes)
+            if (searchQuery) params.search = searchQuery;
+            if (statusFilter !== "all" && statusFilter !== "") params.status = statusFilter;
+            
             if (dateFilter !== "all") {
-                const saleDate = new Date(sale.date);
-                const today = new Date();
+                const today = new Date().toISOString().split('T')[0];
                 if (dateFilter === "today") {
-                    if (saleDate.toDateString() !== today.toDateString()) return false;
+                    params.startDate = today;
+                    params.endDate = today;
                 }
+                // Handle a full custom date strategy here if need be...
             }
 
-            return true;
-        });
-    }, [sales, searchQuery, dateFilter, statusFilter]);
+            const [salesRes, statsRes] = await Promise.all([
+                fetchSales(params),
+                getSalesStats()
+            ]);
 
-    // Stats
-    const stats = useMemo(() => calculateStats(filteredSales), [filteredSales]);
+            setSales(salesRes.data || []);
+            setTotalItems(salesRes.pagination?.total || 0);
+            setTotalPages(Math.ceil((salesRes.pagination?.total || 0) / itemsPerPage));
+            setStats(statsRes);
+        } catch (error) {
+            console.error("Failed to fetch sales data", error);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [currentPage, itemsPerPage, searchQuery, statusFilter, dateFilter]);
 
-    // Pagination Logic
-    const totalPages = Math.ceil(filteredSales.length / itemsPerPage);
-    const paginatedSales = filteredSales.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-    );
+    useEffect(() => {
+        loadData();
+    }, [loadData]);
 
     const handleExport = () => {
         setIsExporting(true);
         setTimeout(() => {
-            exportToCSV(filteredSales);
+            // Export the current loaded sales for now. In real-world, might fetch ALL and export.
+            exportToCSV(sales);
             setIsExporting(false);
         }, 600);
     };
 
-    const handleConfirmRefund = (saleId: string, refundedItemIds: string[], reason: string) => {
-        // Mock refund logic
-        setSales(prev => prev.map(s => {
-            if (s.id === saleId) {
-                return {
-                    ...s,
-                    status: refundedItemIds.length === s.items.length ? 'refunded' : 'partially_refunded',
-                    refundReason: reason
-                };
-            }
-            return s;
-        }));
+    const handleViewDetails = async (sale: Sale) => {
+        try {
+            // The list view doesn't have details like `items`. We hit the detail endpoint.
+            const fullSale = await getSaleDetails(sale.id);
+            setSelectedSaleDetail(fullSale);
+        } catch (error) {
+            console.error(error);
+            // Fallback to what we have or show error toast
+            setSelectedSaleDetail(sale);
+        }
+    }
+
+    const handleConfirmRefund = async (saleId: number, reason: string) => {
+        try {
+            await deleteSale(saleId);
+            // Reload the list & stats
+            loadData();
+        } catch (error) {
+            console.error("Failed to delete/refund sale", error);
+        }
     };
 
     return (
         <div className="space-y-6 w-full pb-8">
-            {/* Page Header */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div className="space-y-1.5">
                     <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Ventes</h1>
@@ -144,27 +151,20 @@ export function SalesPage() {
             </div>
 
             <SaleStats
-                totalRevenue={stats.totalRevenue}
-                totalSalesCount={stats.totalSalesCount}
-                todayRevenue={stats.todaySalesCount}
-                averageSaleAmount={stats.averageSaleAmount}
+                totalRevenue={stats?.totalRevenue || 0}
+                totalSalesCount={stats?.totalSales || 0}
+                todayRevenue={stats?.todayRevenue || 0}
+                averageSaleAmount={stats?.averageOrder || 0}
             />
 
-            <div className="container-none space-y-4 p-4 border border-border rounded-lg bg-background shadow-sm overflow-x-auto">
-                <div className="flex flex-wrap gap-4 items-center justify-between mb-6">
+            <div className="container-none space-y-4 p-4 border border-border rounded-lg bg-white shadow-sm overflow-x-auto">
+                <div className="flex flex-wrap gap-4 items-center justify-between p-3 mb-4 bg-slate-50 rounded-lg border border-slate-200/60">
                     <SalesSearch value={searchQuery} onChange={setSearchQuery} />
 
                     <div className="flex gap-2 items-center">
-                        <SalesFilters
-                            dateFilter={dateFilter}
-                            onDateFilterChange={setDateFilter}
-                            statusFilter={statusFilter}
-                            onStatusFilterChange={setStatusFilter}
-                        />
-
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="outline" size="sm">
+                                <Button variant="outline" size="sm" className="bg-white">
                                     Colonnes
                                 </Button>
                             </DropdownMenuTrigger>
@@ -180,14 +180,23 @@ export function SalesPage() {
                                 ))}
                             </DropdownMenuContent>
                         </DropdownMenu>
+
+                        <Button 
+                            variant="outline" 
+                            size="icon" 
+                            onClick={loadData} 
+                            className="bg-white h-9 w-9"
+                        >
+                            <RefreshCw className={cn("h-4 w-4", isLoading && "animate-spin")} />
+                        </Button>
                     </div>
                 </div>
 
                 <div className="overflow-x-auto overflow-y-hidden">
                     <SalesTable
-                        sales={paginatedSales}
+                        sales={sales}
                         isLoading={isLoading}
-                        onViewDetails={setSelectedSaleDetail}
+                        onViewDetails={handleViewDetails}
                         onRefund={setSelectedSaleRefund}
                         visibleColumns={visibleColumns}
                     />
@@ -197,7 +206,7 @@ export function SalesPage() {
             {totalPages > 1 && (
                 <div className="pt-4 flex justify-between items-center text-sm text-slate-500 font-medium px-4">
                     <div>
-                        Affichage de {((currentPage - 1) * itemsPerPage) + 1} à {Math.min(currentPage * itemsPerPage, filteredSales.length)} sur {filteredSales.length} ventes
+                        Affichage de {((currentPage - 1) * itemsPerPage) + 1} à {Math.min(currentPage * itemsPerPage, totalItems)} sur {totalItems} ventes
                     </div>
                         <Pagination className="justify-end cursor-pointer">
                             <PaginationContent>

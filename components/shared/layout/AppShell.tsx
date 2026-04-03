@@ -30,7 +30,7 @@ export function AppShell({ children }: AppShellProps) {
   const mainMarginLeft = isActuallyMobile ? 0 : isOpen ? SIDEBAR_WIDTH : SIDEBAR_WIDTH_COLLAPSED
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-white">
       <Sidebar />
 
       <div

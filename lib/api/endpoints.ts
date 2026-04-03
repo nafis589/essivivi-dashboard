@@ -2,7 +2,7 @@
  * API Endpoints
  * 
  * All endpoint paths in one place.
- * When the backend is ready, update paths here.
+ * Aligned with customers_api_documentation.md
  */
 
 export const ENDPOINTS = {
@@ -14,16 +14,19 @@ export const ENDPOINTS = {
     ME: '/auth/me',
   },
 
-  // Clients
+  // Clients (aligned with /api/customers doc)
   CLIENTS: {
-    LIST: '/clients',
-    DETAIL: (id: number) => `/clients/${id}`,
-    CREATE: '/clients',
-    UPDATE: (id: number) => `/clients/${id}`,
-    DELETE: (id: number) => `/clients/${id}`,
-    PURCHASES: (id: number) => `/clients/${id}/purchases`,
-    IMPORT: '/clients/import',
-    EXPORT: '/clients/export',
+    LIST: '/customers',
+    CREATE: '/customers',
+    DETAIL: (id: number) => `/customers/${id}`,
+    UPDATE: (id: number) => `/customers/${id}`,
+    DELETE: (id: number) => `/customers/${id}`,
+    SALES: (id: number) => `/customers/${id}/sales`,
+    STATS: (id: number) => `/customers/${id}/stats`,
+    FULL: (id: number) => `/customers/${id}/full`,
+    TOP: '/customers/top',
+    INACTIVE: '/customers/inactive',
+    NEW: '/customers/new',
   },
 
   // Products

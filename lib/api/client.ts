@@ -1,14 +1,14 @@
 /**
  * API Client
- * 
+ *
  * Centralized HTTP client for all API calls.
- * Currently configured for mock/local use.
- * When backend is ready, just update API_BASE_URL.
+ * Sends the JWT token (stored in localStorage as "fc_token") via the
+ * Authorization header AND includes cookies via `credentials: 'include'`.
  */
 
 // ─── Configuration ──────────────────────────────────────────────────────────────
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api'
+const API_BASE_URL = "http://localhost:3001/api"
 const API_TIMEOUT = 10000 // 10 seconds
 
 // ─── Types ──────────────────────────────────────────────────────────────────────
@@ -18,7 +18,7 @@ interface RequestConfig extends RequestInit {
   timeout?: number
 }
 
-interface ApiClientError {
+export interface ApiClientError {
   message: string
   statusCode: number
   code: string
@@ -26,25 +26,33 @@ interface ApiClientError {
 
 // ─── Helpers ────────────────────────────────────────────────────────────────────
 
-function buildUrl(path: string, params?: Record<string, string | number | boolean | undefined>): string {
-  const url = new URL(`${API_BASE_URL}${path}`, window.location.origin)
-  
+function buildUrl(
+  path: string,
+  params?: Record<string, string | number | boolean | undefined>
+): string {
+  let url = `${API_BASE_URL}${path}`
+
   if (params) {
+    const searchParams = new URLSearchParams()
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) {
-        url.searchParams.set(key, String(value))
+        searchParams.set(key, String(value))
       }
     })
+    const qs = searchParams.toString()
+    if (qs) url += `?${qs}`
   }
 
-  return url.toString()
+  return url
 }
 
+/**
+ * Reads the JWT token stored under "fc_token" in localStorage.
+ * Returns an Authorization header object, or empty if no token is found.
+ */
 function getAuthHeaders(): Record<string, string> {
-  // Future: Read token from auth store or cookie
-  const token = typeof window !== 'undefined' 
-    ? localStorage.getItem('auth_token') 
-    : null
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("fc_token") : null
 
   return token ? { Authorization: `Bearer ${token}` } : {}
 }
@@ -52,7 +60,10 @@ function getAuthHeaders(): Record<string, string> {
 // ─── API Client ─────────────────────────────────────────────────────────────────
 
 class ApiClientClass {
-  private async request<T>(path: string, config: RequestConfig = {}): Promise<T> {
+  private async request<T>(
+    path: string,
+    config: RequestConfig = {}
+  ): Promise<T> {
     const { params, timeout = API_TIMEOUT, ...fetchConfig } = config
 
     const url = buildUrl(path, params)
@@ -62,11 +73,13 @@ class ApiClientClass {
     try {
       const response = await fetch(url, {
         ...fetchConfig,
+        // credentials AFTER the spread so it cannot be accidentally overridden
+        credentials: "include",
         signal: controller.signal,
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           ...getAuthHeaders(),
-          ...fetchConfig.headers,
+          ...(fetchConfig.headers as Record<string, string>),
         },
       })
 
@@ -88,12 +101,17 @@ class ApiClientClass {
           // Ignore parse error
         }
 
+        // Auto-logout on 401 (session expired / invalid token)
+        if (response.status === 401) {
+          console.warn("[ApiClient] 401 Unauthorized — token may be invalid or expired.")
+        }
+
         throw error
       }
 
-      // Handle empty responses
-      const contentType = response.headers.get('content-type')
-      if (contentType?.includes('application/json')) {
+      // Handle empty responses (204 No Content, etc.)
+      const contentType = response.headers.get("content-type")
+      if (contentType?.includes("application/json")) {
         return response.json()
       }
 
@@ -101,11 +119,11 @@ class ApiClientClass {
     } catch (error) {
       clearTimeout(timeoutId)
 
-      if (error instanceof DOMException && error.name === 'AbortError') {
+      if (error instanceof DOMException && error.name === "AbortError") {
         throw {
-          message: 'Request timeout',
+          message: "Request timeout",
           statusCode: 408,
-          code: 'TIMEOUT',
+          code: "TIMEOUT",
         } as ApiClientError
       }
 
@@ -114,35 +132,47 @@ class ApiClientClass {
   }
 
   async get<T>(path: string, config?: RequestConfig): Promise<T> {
-    return this.request<T>(path, { ...config, method: 'GET' })
+    return this.request<T>(path, { ...config, method: "GET" })
   }
 
-  async post<T>(path: string, data?: unknown, config?: RequestConfig): Promise<T> {
+  async post<T>(
+    path: string,
+    data?: unknown,
+    config?: RequestConfig
+  ): Promise<T> {
     return this.request<T>(path, {
       ...config,
-      method: 'POST',
+      method: "POST",
       body: data ? JSON.stringify(data) : undefined,
     })
   }
 
-  async put<T>(path: string, data?: unknown, config?: RequestConfig): Promise<T> {
+  async put<T>(
+    path: string,
+    data?: unknown,
+    config?: RequestConfig
+  ): Promise<T> {
     return this.request<T>(path, {
       ...config,
-      method: 'PUT',
+      method: "PUT",
       body: data ? JSON.stringify(data) : undefined,
     })
   }
 
-  async patch<T>(path: string, data?: unknown, config?: RequestConfig): Promise<T> {
+  async patch<T>(
+    path: string,
+    data?: unknown,
+    config?: RequestConfig
+  ): Promise<T> {
     return this.request<T>(path, {
       ...config,
-      method: 'PATCH',
+      method: "PATCH",
       body: data ? JSON.stringify(data) : undefined,
     })
   }
 
   async delete<T>(path: string, config?: RequestConfig): Promise<T> {
-    return this.request<T>(path, { ...config, method: 'DELETE' })
+    return this.request<T>(path, { ...config, method: "DELETE" })
   }
 }
 

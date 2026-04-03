@@ -1,50 +1,66 @@
-export type SaleStatus = 'paid' | 'refunded' | 'pending' | 'partially_refunded';
-export type PaymentMethod = 'cash' | 'mobile' | 'card';
+export type SaleStatus = 'COMPLETED' | 'PENDING' | 'CANCELLED';
+export type PaymentMethod = 'CASH' | 'CARD' | 'MOBILE_MONEY';
 
 export interface SaleCustomer {
-    id: string;
+    id: number;
     name: string;
     phone?: string;
     email?: string;
 }
 
 export interface SaleItem {
-    id: string;
-    productId: string;
+    id?: number;
+    productId?: number;
     name: string;
     quantity: number;
-    unitPrice: number;
+    price: number;
     total: number;
-    refundedQuantity: number;
+    refundedQuantity?: number;
+}
+
+export interface SalePayment {
+    id?: number;
+    method: PaymentMethod;
+    amount: number;
 }
 
 export interface Sale {
-    id: string;
+    id: number;
     invoiceNumber: string;
-    date: string; // ISO string
+    createdAt: string; // API uses createdAt instead of date
+    updatedAt?: string;
     customer: SaleCustomer | null;
-    items: SaleItem[];
+    items?: SaleItem[];      // Optional because missing in list endpoint
+    payments?: SalePayment[];// Optional because missing in list endpoint
     subtotal: number;
-    taxes: number;
+    tax: number;
     total: number;
-    paymentMethod: PaymentMethod;
     status: SaleStatus;
-    refundReason?: string;
+    userId?: string;
+    customerId?: number;
 }
 
 export interface SalesFilterOptions {
     dateRange: 'today' | 'this_week' | 'this_month' | 'custom';
     customDateRange?: { start: Date; end: Date };
-    paymentMethod?: PaymentMethod | 'all';
     status?: SaleStatus | 'all';
-    minAmount?: number;
-    maxAmount?: number;
     searchQuery: string;
+    page: number;
+    limit: number;
 }
 
 export interface SalesStats {
-    totalSalesCount: number;
+    totalSales: number;
     totalRevenue: number;
-    todaySalesCount: number;
-    averageSaleAmount: number;
+    todayRevenue: number;
+    averageOrder: number;
+}
+
+export interface SalesListResponse {
+    data: Sale[];
+    pagination: {
+        page: number;
+        limit: number;
+        total: number;
+    };
 }

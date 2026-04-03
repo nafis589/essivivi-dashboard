@@ -17,7 +17,7 @@ export function SalesSearch({ value, onChange }: SalesSearchProps) {
             <Input
                 type="text"
                 placeholder="Rechercher par n° facture, client..."
-                className="pl-10 h-9 border-slate-200 focus-visible:ring-indigo-500 shadow-sm rounded-md placeholder:text-slate-400"
+                className="pl-10 h-9 border-slate-200 focus-visible:ring-indigo-500 shadow-sm rounded-md placeholder:text-slate-400 bg-white"
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
             />

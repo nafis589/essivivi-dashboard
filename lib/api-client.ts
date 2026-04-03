@@ -11,6 +11,12 @@ interface RequestOptions {
   token?: string;
 }
 
+/**
+ * Low-level API request helper.
+ * - Always sends `credentials: 'include'` so cookies (session) travel cross-origin.
+ * - Attaches a Bearer token if one is supplied explicitly, else falls back to
+ *   the JWT stored in localStorage under `fc_token`.
+ */
 export async function apiRequest<T>(
   endpoint: string,
   options: RequestOptions = {}
@@ -19,17 +25,22 @@ export async function apiRequest<T>(
 
   const url = `${API_BASE_URL}${endpoint}`;
 
+  // Resolve token: explicit param > localStorage
+  const resolvedToken =
+    token ??
+    (typeof window !== "undefined" ? localStorage.getItem("fc_token") : null);
+
   const config: RequestInit = {
     method,
+    credentials: "include", // send cookies cross-origin (session cookie, etc.)
     headers: {
       "Content-Type": "application/json",
+      ...(resolvedToken
+        ? { Authorization: `Bearer ${resolvedToken}` }
+        : {}),
       ...headers,
     },
   };
-
-  if (token) {
-    (config.headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
-  }
 
   if (body) {
     config.body = JSON.stringify(body);
@@ -57,3 +68,4 @@ export const authApi = {
       body: data,
     }),
 };
+

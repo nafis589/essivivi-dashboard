@@ -5,8 +5,10 @@ import { Sale } from './types';
 export const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('fr-FR', {
         style: 'currency',
-        currency: 'EUR', // change to your actual currency
-    }).format(amount);
+        currency: 'XOF',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+    }).format(amount).replace('XOF', 'FCFA');
 };
 
 export const formatDateTime = (dateString: string) => {
@@ -21,8 +23,8 @@ export const calculateStats = (sales: Sale[]) => {
     const now = new Date();
     const today = format(now, 'yyyy-MM-dd');
 
-    const todaySales = sales.filter(s => format(new Date(s.date), 'yyyy-MM-dd') === today);
-    const totalRevenue = sales.filter(s => s.status === 'paid' || s.status === 'partially_refunded').reduce((acc, sale) => acc + sale.total, 0);
+    const todaySales = sales.filter(s => format(new Date(s.createdAt), 'yyyy-MM-dd') === today);
+    const totalRevenue = sales.filter(s => s.status === 'COMPLETED').reduce((acc, sale) => Math.max(0, acc + sale.total), 0);
 
     return {
         totalSalesCount: sales.length,
@@ -37,13 +39,13 @@ export const exportToCSV = (sales: Sale[]) => {
     const headers = ['Nº Facture', 'Date', 'Client', 'Articles', 'Sous-total', 'Taxes', 'Total', 'Paiement', 'Statut'];
     const rows = sales.map(s => [
         s.invoiceNumber,
-        formatDateTime(s.date),
+        formatDateTime(s.createdAt),
         s.customer?.name || 'Anonyme',
-        s.items.reduce((acc, item) => acc + item.quantity, 0).toString(),
+        (s.items || []).reduce((acc, item) => acc + item.quantity, 0).toString(),
         s.subtotal.toFixed(2),
-        s.taxes.toFixed(2),
+        s.tax.toFixed(2),
         s.total.toFixed(2),
-        s.paymentMethod,
+        s.payments?.[0]?.method || '',
         s.status
     ]);
 

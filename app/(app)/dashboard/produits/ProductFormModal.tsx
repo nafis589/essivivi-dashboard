@@ -1,262 +1,397 @@
+/* eslint-disable @next/next/no-img-element */
 'use client'
 
-import React from 'react'
+import { useState, useEffect } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as z from 'zod'
 import {
-    Dialog,
-    DialogContent,
-    DialogOverlay,
-    DialogPortal,
-    DialogTitle,
-    DialogDescription,
-} from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Checkbox } from '@/components/ui/checkbox'
 import { Textarea } from '@/components/ui/textarea'
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select'
-import { X, UploadCloud, Calendar } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+
+import { Checkbox } from '@/components/ui/checkbox'
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { ProductFormData, Product } from '@/lib/types/product.types'
+
+
+// Helper: converts empty string or NaN to undefined for optional numeric fields
+const optionalNumber = z.preprocess(
+  (val) => {
+    if (val === '' || val === null || val === undefined) return undefined;
+    const num = Number(val);
+    return isNaN(num) ? undefined : num;
+  },
+  z.number().min(0).optional()
+);
+
+// Adapting the Zod Schema based on the exact API docs
+const productSchema = z.object({
+  name: z.string().min(2, "Le nom est requis"),
+  price: z.coerce.number().min(0, "Le prix est requis"),
+  description: z.string().optional(),
+  costPrice: optionalNumber,
+  stock: z.coerce.number().min(0).default(0),
+  stockAlert: z.coerce.number().min(0).default(5),
+  barcode: z.string().optional(),
+  sku: z.string().optional(),
+  active: z.boolean().default(true),
+  metadata: z.object({
+    brand: z.string().optional(),
+    color: z.string().optional(),
+    material: z.string().optional(),
+  }).default({}),
+  images: z.array(z.object({ url: z.string() })).default([])
+})
 
 interface ProductFormModalProps {
-    isOpen: boolean
-    onClose: () => void
-    product?: any | null
+  isOpen: boolean;
+  onClose: () => void;
+  product?: Product | null;
+  onSubmit: (data: ProductFormData) => void;
 }
 
 export function ProductFormModal({
-    isOpen,
-    onClose,
-    product,
+  isOpen,
+  onClose,
+  product,
+  onSubmit
 }: ProductFormModalProps) {
-    const isEditing = !!product
+  const form = useForm<z.infer<typeof productSchema>>({
+    resolver: zodResolver(productSchema) as any,
+    defaultValues: {
+      name: '',
+      price: 0,
+      description: '',
+      costPrice: 0,
+      stock: 0,
+      stockAlert: 5,
+      barcode: '',
+      sku: '',
+      active: true,
+      metadata: { brand: '', color: '', material: '' },
+      images: []
+    }
+  })
 
-    return (
-        <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <DialogPortal>
-                <DialogOverlay className="bg-slate-900/40 backdrop-blur-sm" />
+  // Reset form when product changes
+  useEffect(() => {
+    if (product) {
+      form.reset({
+        name: product.name,
+        price: product.price,
+        description: product.description || '',
+        costPrice: product.costPrice || 0,
+        stock: product.stock !== undefined ? product.stock : 0,
+        stockAlert: product.stockAlert !== undefined ? product.stockAlert : 5,
+        barcode: product.barcode || '',
+        sku: product.sku || '',
+        active: product.active !== undefined ? product.active : true,
+        metadata: {
+          brand: product.metadata?.brand || '',
+          color: product.metadata?.color || '',
+          material: product.metadata?.material || ''
+        },
+        images: product.images || []
+      })
+    } else {
+      form.reset({
+        name: '',
+        price: 0,
+        description: '',
+        costPrice: 0,
+        stock: 0,
+        stockAlert: 5,
+        barcode: '',
+        sku: '',
+        active: true,
+        metadata: { brand: '', color: '', material: '' },
+        images: []
+      })
+    }
+  }, [product, form, isOpen])
 
-                <DialogContent
-                    showCloseButton={false}
-                    className="w-[850px] max-w-[95vw] p-0 gap-0 overflow-hidden bg-white rounded-xl border border-slate-200 shadow-xl"
-                    aria-describedby="product-form-description"
-                >
-                    <DialogDescription id="product-form-description" className="sr-only">
-                        Fill out the form below to add or edit a product.
-                    </DialogDescription>
+  const [imageUrlInput, setImageUrlInput] = useState('')
 
-                    {/* HEADER */}
-                    <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
-                        <DialogTitle className="text-lg font-semibold text-slate-900">
-                            {isEditing ? 'Edit Product' : 'Add Product'}
-                        </DialogTitle>
+  return (
+    <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <SheetContent className="w-full sm:max-w-md p-6 overflow-hidden sm:rounded-l-2xl border-l flex flex-col h-full bg-white z-[100]">
+        <SheetHeader className="mb-6">
+          <SheetTitle>
+            {product ? 'Modifier le produit' : 'Nouveau produit'}
+          </SheetTitle>
+        </SheetHeader>
 
-                        <button
-                            onClick={onClose}
-                            className="text-slate-400 hover:text-slate-600 transition-colors"
-                        >
-                            <X className="h-5 w-5" />
-                        </button>
+        <div className="flex-1 overflow-hidden text-sm">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(
+              (data) => {
+                console.log('[ProductForm] ✅ Submit OK, data:', data);
+                onSubmit(data as unknown as ProductFormData);
+              },
+              (errors) => {
+                console.error('[ProductForm] ❌ Validation errors:', errors);
+              }
+            )} className="space-y-6 flex flex-col h-full">
+              <div className="flex-1 overflow-y-auto pr-4 min-h-0">
+                <div className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nom du produit *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Ex: iPhone 14" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="price"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Prix de vente *</FormLabel>
+                          <FormControl>
+                            <Input type="number" placeholder="999" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="costPrice"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Prix d'achat</FormLabel>
+                          <FormControl>
+                            <Input type="number" placeholder="700" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="stock"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Stock actuel</FormLabel>
+                          <FormControl>
+                            <Input type="number" placeholder="0" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="stockAlert"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Alerte stock bas</FormLabel>
+                          <FormControl>
+                            <Input type="number" placeholder="5" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="sku"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>SKU</FormLabel>
+                          <FormControl>
+                            <Input placeholder="PROD-001" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="barcode"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Code-barres</FormLabel>
+                          <FormControl>
+                            <Input placeholder="123456789" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="metadata.brand"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Marque</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Ex: Apple" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="metadata.color"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Couleur</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Ex: Noir" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="metadata.material"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Matériau</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Ex: Aluminium" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Description du produit..."
+                            className="resize-none h-24"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="active"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center space-x-3 space-y-0 p-4 border rounded-md">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>Produit actif</FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="space-y-2 pt-2 pb-4">
+                    <FormLabel>Images (URL)</FormLabel>
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="https://example.com/image.jpg"
+                        value={imageUrlInput}
+                        onChange={(e) => setImageUrlInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            if (imageUrlInput.trim()) {
+                              const currentImages = form.getValues('images') || [];
+                              form.setValue('images', [...currentImages, { url: imageUrlInput.trim() }]);
+                              setImageUrlInput('');
+                            }
+                          }
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={() => {
+                          if (imageUrlInput.trim()) {
+                            const currentImages = form.getValues('images') || [];
+                            form.setValue('images', [...currentImages, { url: imageUrlInput.trim() }]);
+                            setImageUrlInput('');
+                          }
+                        }}
+                      >
+                        Ajouter
+                      </Button>
                     </div>
-
-                    {/* FORM */}
-                    <div className="px-6 py-6 space-y-6 max-h-[75vh] overflow-y-auto">
-
-                        {/* ROW 1 */}
-                        <div className="grid grid-cols-2 gap-6">
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-900">
-                                    Product Name
-                                </label>
-                                <Input
-                                    placeholder="Type product name"
-                                    defaultValue={product?.name}
-                                    className="h-10 bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-500"
-                                />
+                    {form.watch('images')?.length > 0 && (
+                      <div className="mt-2 grid grid-cols-4 gap-2">
+                        {form.watch('images').map((img: any, idx: number) => {
+                          const url = typeof img === 'string' ? img : img?.url;
+                          if (!url) return null;
+                          return (
+                            <div key={idx} className="relative group rounded overflow-hidden aspect-square border cursor-pointer" onClick={() => {
+                              const newImages = form.getValues('images').filter((_: any, i: number) => i !== idx);
+                              form.setValue('images', newImages);
+                            }}>
+                              <img src={url} alt="Product" className="w-full h-full object-cover" />
+                              <div className="absolute inset-0 bg-red-500/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <span className="text-white text-xs font-bold">X</span>
+                              </div>
                             </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
 
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-900">
-                                    Category
-                                </label>
+                </div>
+              </div>
 
-                                <Select defaultValue={product?.category || 'PC'}>
-                                    <SelectTrigger className="h-10 bg-slate-50 border-slate-200 text-slate-900">
-                                        <SelectValue />
-                                    </SelectTrigger>
-
-                                    <SelectContent>
-                                        <SelectItem value="PC">PC</SelectItem>
-                                        <SelectItem value="Phone">Phone</SelectItem>
-                                        <SelectItem value="Tablet">Tablet</SelectItem>
-                                        <SelectItem value="Gaming/Console">
-                                            Gaming/Console
-                                        </SelectItem>
-                                        <SelectItem value="Watch">Watch</SelectItem>
-                                        <SelectItem value="Photo">Photo</SelectItem>
-                                        <SelectItem value="TV/Monitor">TV/Monitor</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        </div>
-
-                        {/* ROW 2 */}
-                        <div className="grid grid-cols-2 gap-6">
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-900">
-                                    Brand
-                                </label>
-
-                                <Input
-                                    placeholder="Product brand"
-                                    defaultValue={product?.brand}
-                                    className="h-10 bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-500"
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-900">
-                                    Price
-                                </label>
-
-                                <Input
-                                    type="number"
-                                    placeholder="$2999"
-                                    defaultValue={product?.price ? product.price.replace('$', '') : ''}
-                                    className="h-10 bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-500"
-                                />
-                            </div>
-                        </div>
-
-                        {/* ROW 3 DIMENSIONS */}
-                        <div className="grid grid-cols-4 gap-6">
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-900">
-                                    Item weight
-                                </label>
-
-                                <Input
-                                    placeholder="12"
-                                    defaultValue={isEditing ? '12' : ''}
-                                    className="h-10 bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-500"
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-900">
-                                    Lenght (cm)
-                                </label>
-
-                                <Input
-                                    placeholder="105"
-                                    defaultValue={isEditing ? '105' : ''}
-                                    className="h-10 bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-500"
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-900">
-                                    Breadth (cm)
-                                </label>
-
-                                <Input
-                                    placeholder="2"
-                                    defaultValue={isEditing ? '2' : ''}
-                                    className="h-10 bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-500"
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-900">
-                                    Width (cm)
-                                </label>
-
-                                <Input
-                                    placeholder="23"
-                                    defaultValue={isEditing ? '23' : ''}
-                                    className="h-10 bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-500"
-                                />
-                            </div>
-                        </div>
-
-                        {/* DESCRIPTION */}
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-900">
-                                Description
-                            </label>
-
-                            <Textarea
-                                placeholder="Write product description here"
-                                className="min-h-[130px] bg-slate-50 border-slate-200 resize-none text-slate-900 placeholder:text-slate-500"
-                            />
-                        </div>
-
-                        {/* CHECKBOXES */}
-                        <div className="flex items-center gap-6 flex-wrap">
-                            <label className="flex items-center gap-2 text-sm text-slate-900 font-medium cursor-pointer">
-                                <Checkbox defaultChecked className="border-slate-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 data-[state=checked]:text-white shadow-none rounded-[4px]" />
-                                In-store only
-                            </label>
-
-                            <label className="flex items-center gap-2 text-sm text-slate-900 font-medium cursor-pointer">
-                                <Checkbox defaultChecked className="border-slate-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 data-[state=checked]:text-white shadow-none rounded-[4px]" />
-                                Online selling only
-                            </label>
-
-                            <label className="flex items-center gap-2 text-sm text-slate-900 font-medium cursor-pointer">
-                                <Checkbox defaultChecked className="border-slate-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 data-[state=checked]:text-white shadow-none rounded-[4px]" />
-                                Both in-store and online
-                            </label>
-                        </div>
-
-                        {/* DROPZONE */}
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-900">
-                                Product Images
-                            </label>
-
-                            <div className="border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 hover:bg-slate-100 transition flex flex-col items-center justify-center text-center py-16 cursor-pointer">
-                                <UploadCloud className="h-10 w-10 text-slate-400 mb-3" />
-
-                                <p className="text-sm text-slate-500">
-                                    <span className="font-semibold text-slate-900">
-                                        Click to upload
-                                    </span>{' '}
-                                    or drag and drop
-                                </p>
-
-                                <p className="text-xs text-slate-400 mt-1">
-                                    SVG, PNG, JPG or GIF (MAX. 800x400px)
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* FOOTER */}
-                    <div className="flex items-center gap-3 px-6 py-4 border-t border-slate-200 bg-white">
-                        <Button className="bg-[#1C4ED8] hover:bg-blue-800 text-white px-5 rounded-lg shadow-sm font-medium">
-                            {isEditing ? 'Save changes' : 'Add product'}
-                        </Button>
-
-                        <Button className="bg-[#1C4ED8] hover:bg-blue-800 text-white flex gap-2 px-5 rounded-lg shadow-sm font-medium">
-                            <Calendar className="h-4 w-4" />
-                            Schedule
-                        </Button>
-
-                        <Button
-                            variant="outline"
-                            onClick={onClose}
-                            className="border-slate-300 text-slate-900 hover:bg-slate-50 px-5 rounded-lg shadow-sm font-medium"
-                        >
-                            Discard
-                        </Button>
-                    </div>
-                </DialogContent>
-            </DialogPortal>
-        </Dialog>
-    )
+              <div className="flex gap-3 justify-end pt-4 border-t mt-auto">
+                <Button variant="outline" type="button" onClick={onClose}>
+                  Annuler
+                </Button>
+                <Button type="submit">
+                  {product ? 'Enregistrer les modifications' : 'Créer le produit'}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </div>
+      </SheetContent>
+    </Sheet>
+  )
 }

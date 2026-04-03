@@ -18,8 +18,9 @@ interface SaleDetailModalProps {
 export function SaleDetailModal({ sale, isOpen, onClose, onRefund }: SaleDetailModalProps) {
     if (!sale) return null;
 
-    const PaymentIcon = sale.paymentMethod === 'cash' ? Banknote : sale.paymentMethod === 'card' ? CreditCard : Smartphone;
-    const paymentLabel = sale.paymentMethod === 'cash' ? 'Espèces' : sale.paymentMethod === 'card' ? 'Carte bancaire' : 'Paiement mobile';
+    const paymentMethod = sale.payments?.[0]?.method || 'CASH';
+    const PaymentIcon = paymentMethod === 'CASH' ? Banknote : paymentMethod === 'CARD' ? CreditCard : Smartphone;
+    const paymentLabel = paymentMethod === 'CASH' ? 'Espèces' : paymentMethod === 'CARD' ? 'Carte bancaire' : 'Paiement mobile';
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
@@ -31,7 +32,7 @@ export function SaleDetailModal({ sale, isOpen, onClose, onRefund }: SaleDetailM
                             Commande {sale.invoiceNumber}
                         </DialogTitle>
                         <DialogDescription className="text-sm font-medium text-slate-500">
-                            Passée le {formatDateTime(sale.date)}
+                            Passée le {formatDateTime(sale.createdAt)}
                         </DialogDescription>
                     </DialogHeader>
                     <div>
@@ -77,12 +78,12 @@ export function SaleDetailModal({ sale, isOpen, onClose, onRefund }: SaleDetailM
                         <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">Résumé de la commande</h4>
 
                         <div className="flex-1 space-y-3 overflow-y-auto max-h-[160px] pr-2 custom-scrollbar">
-                            {sale.items.map((item) => (
+                            {(sale.items || []).map((item) => (
                                 <div key={item.id} className="flex justify-between items-start text-sm">
                                     <div>
                                         <p className="font-medium text-slate-800">{item.name}</p>
-                                        <p className="text-slate-500 text-xs">{item.quantity} x {formatCurrency(item.unitPrice)}</p>
-                                        {item.refundedQuantity > 0 && (
+                                        <p className="text-slate-500 text-xs">{item.quantity} x {formatCurrency(item.price)}</p>
+                                        {(item.refundedQuantity ?? 0) > 0 && (
                                             <span className="text-rose-600 text-xs font-medium block mt-0.5">
                                                 -{item.refundedQuantity} remboursé(s)
                                             </span>
@@ -100,7 +101,7 @@ export function SaleDetailModal({ sale, isOpen, onClose, onRefund }: SaleDetailM
                             </div>
                             <div className="flex justify-between text-sm text-slate-600">
                                 <span>TVA (10%)</span>
-                                <span>{formatCurrency(sale.taxes)}</span>
+                                <span>{formatCurrency(sale.tax)}</span>
                             </div>
                             <div className="flex justify-between mt-2 pt-2 border-t border-slate-200">
                                 <span className="font-semibold text-slate-900">Total payé</span>
@@ -126,7 +127,7 @@ export function SaleDetailModal({ sale, isOpen, onClose, onRefund }: SaleDetailM
                         <Button variant="outline" onClick={onClose} className="h-9 border-slate-200">
                             Fermer
                         </Button>
-                        {sale.status !== 'refunded' && (
+                        {sale.status === 'COMPLETED' && (
                             <Button
                                 variant="destructive"
                                 className="h-9 bg-rose-600 hover:bg-rose-700 text-white font-medium"

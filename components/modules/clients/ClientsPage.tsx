@@ -1,13 +1,12 @@
 'use client'
 
-import { useState, useMemo } from 'react'
-import { Plus, Users, DownloadCloud } from 'lucide-react'
-import { Client, ClientFormData } from '@/lib/modules/clients/types'
-import { mockClients, mockPurchaseHistory } from '@/lib/modules/clients/mockData'
-import { getClientStatus } from '@/lib/modules/clients/utils'
+import { useState, useEffect, useCallback } from 'react'
+import { Plus, DownloadCloud, RefreshCw } from 'lucide-react'
+import { Client, ClientFormData, ClientsListParams, PaginationInfo } from '@/lib/modules/clients/types'
+import { ClientsFilters, ClientFilterType } from './ClientsFilters'
+import { fetchClients, createClient, updateClient, deleteClient } from '@/lib/modules/clients/api'
 import { ClientsTable } from './ClientsTable'
 import { ClientsSearch } from './ClientsSearch'
-import { ClientsFilters, ClientFilterType } from './ClientsFilters'
 import { ClientDetail } from './ClientDetail'
 import { ClientForm } from './ClientForm'
 import { ClientDeleteDialog } from './ClientDeleteDialog'
@@ -26,6 +25,7 @@ import {
 const allColumns = [
     "Client",
     "Contact",
+    "Statut",
     "Achats",
     "Dépenses",
     "Dernière visite",
@@ -33,14 +33,22 @@ const allColumns = [
 ] as const;
 
 export function ClientsPage() {
-    const [clients, setClients] = useState<Client[]>(mockClients)
+    // ── Data state ──────────────────────────────────────────────
+    const [clients, setClients] = useState<Client[]>([])
+    const [pagination, setPagination] = useState<PaginationInfo>({ page: 1, limit: 20, total: 0, totalPages: 0 })
+    const [isLoading, setIsLoading] = useState(true)
+
+    // ── Filter / Search state ───────────────────────────────────
     const [searchQuery, setSearchQuery] = useState('')
     const [filterType, setFilterType] = useState<ClientFilterType>('all')
+    const [sortBy, setSortBy] = useState<ClientsListParams['sortBy']>('createdAt')
+    const [sortOrder, setSortOrder] = useState<ClientsListParams['sortOrder']>('desc')
 
-    // États modales
+    // ── Modal state ─────────────────────────────────────────────
     const [isFormOpen, setIsFormOpen] = useState(false)
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
     const [isImportExportOpen, setIsImportExportOpen] = useState(false)
+    const [isSubmitting, setIsSubmitting] = useState(false)
 
     const [selectedClient, setSelectedClient] = useState<Client | null>(null)
     const [visibleColumns, setVisibleColumns] = useState<string[]>([...allColumns]);
@@ -53,27 +61,65 @@ export function ClientsPage() {
         );
     };
 
-    // Filtrage et recherche
-    const filteredClients = useMemo(() => {
-        return clients.filter(client => {
-            const searchLower = searchQuery.toLowerCase()
-            const matchesSearch =
-                client.name.toLowerCase().includes(searchLower) ||
-                (client.email && client.email.toLowerCase().includes(searchLower)) ||
-                (client.phone && client.phone.includes(searchLower))
+    // ── Fetch clients from API ──────────────────────────────────
+    const loadClients = useCallback(async (page = 1) => {
+        setIsLoading(true)
+        try {
+            const params: ClientsListParams = {
+                page,
+                limit: 20,
+                sortBy,
+                sortOrder,
+            }
+            if (searchQuery.trim()) {
+                params.search = searchQuery.trim()
+            }
 
-            if (!matchesSearch) return false
+            const response = await fetchClients(params)
 
-            const status = getClientStatus(client)
-            if (filterType === 'recent') return status === 'nouveau'
-            if (filterType === 'inactive') return status === 'inactif'
-            if (filterType === 'best') return client.totalPurchases >= 10 || client.totalSpent >= 1000
+            if (response.success) {
+                setClients(response.data.customers)
+                setPagination(response.data.pagination)
+            }
+        } catch (error) {
+            console.error('Erreur chargement clients:', error)
+            toast.error('Impossible de charger les clients')
+        } finally {
+            setIsLoading(false)
+        }
+    }, [searchQuery, sortBy, sortOrder])
 
-            return true
-        })
-    }, [clients, searchQuery, filterType])
+    // Charger au montage et quand les filtres changent
+    useEffect(() => {
+        const debounce = setTimeout(() => {
+            loadClients(1)
+        }, searchQuery ? 400 : 0)
+        return () => clearTimeout(debounce)
+    }, [loadClients, searchQuery])
 
-    // Actions
+    // ── Filtrage local ──────────────────────────────────────────
+    const filteredClients = (() => {
+        if (filterType === 'all') return clients
+        if (filterType === 'best') {
+            return clients.filter(c => c.totalPurchases >= 10 || c.totalSpent >= 50000)
+        }
+        if (filterType === 'recent') {
+            return clients.filter(c => c.totalPurchases === 0)
+        }
+        if (filterType === 'inactive') {
+            if (!clients.length) return clients
+            return clients.filter(c => {
+                if (!c.lastPurchaseAt || c.totalPurchases === 0) return false
+                const diffDays = Math.floor(
+                    (Date.now() - new Date(c.lastPurchaseAt).getTime()) / (1000 * 60 * 60 * 24)
+                )
+                return diffDays > 60
+            })
+        }
+        return clients
+    })()
+
+    // ── Actions ─────────────────────────────────────────────────
     const handleViewClient = (client: Client) => {
         setSelectedClient(client)
     }
@@ -88,32 +134,39 @@ export function ClientsPage() {
         setIsDeleteDialogOpen(true)
     }
 
-    const handleConfirmDelete = () => {
-        if (selectedClient) {
-            setClients(clients.filter(c => c.id !== selectedClient.id))
+    const handleConfirmDelete = async () => {
+        if (!selectedClient) return
+        setIsSubmitting(true)
+        try {
+            await deleteClient(selectedClient.id)
             toast.success('Client supprimé avec succès')
             setIsDeleteDialogOpen(false)
             setSelectedClient(null)
+            loadClients(pagination.page)
+        } catch (error: any) {
+            toast.error(error?.message || 'Erreur lors de la suppression')
+        } finally {
+            setIsSubmitting(false)
         }
     }
 
-    const handleSaveClient = (data: ClientFormData) => {
-        if (selectedClient && isFormOpen) {
-            setClients(clients.map(c => c.id === selectedClient.id ? { ...c, ...data } : c))
-            toast.success('Client modifié avec succès')
-            setSelectedClient({ ...selectedClient, ...data })
-            setIsFormOpen(false)
-        } else {
-            const newClient: Client = {
-                id: Math.max(...clients.map(c => c.id), 0) + 1,
-                ...data,
-                totalPurchases: 0,
-                totalSpent: 0,
-                createdAt: new Date()
+    const handleSaveClient = async (data: ClientFormData) => {
+        setIsSubmitting(true)
+        try {
+            if (selectedClient && isFormOpen) {
+                await updateClient(selectedClient.id, data)
+                toast.success('Client modifié avec succès')
+            } else {
+                await createClient(data)
+                toast.success('Client créé avec succès')
             }
-            setClients([newClient, ...clients])
-            toast.success('Client créé avec succès')
             setIsFormOpen(false)
+            setSelectedClient(null)
+            loadClients(pagination.page)
+        } catch (error: any) {
+            toast.error(error?.message || 'Erreur lors de l\'enregistrement')
+        } finally {
+            setIsSubmitting(false)
         }
     }
 
@@ -126,7 +179,11 @@ export function ClientsPage() {
         toast.success(`Redirection vers la caisse pour ${client.name}...`)
     }
 
-    const isDetailOpen = selectedClient !== null
+    const handlePageChange = (page: number) => {
+        loadClients(page)
+    }
+
+    const isDetailOpen = selectedClient !== null && !isFormOpen && !isDeleteDialogOpen
 
     return (
         <div className="flex flex-col h-full -mt-1">
@@ -134,7 +191,6 @@ export function ClientsPage() {
                 <div className="flex-1 overflow-hidden bg-white">
                     <ClientDetail
                         client={selectedClient}
-                        history={mockPurchaseHistory[selectedClient.id] || []}
                         onEdit={() => handleEditClient(selectedClient)}
                         onDelete={() => handleDeleteClient(selectedClient)}
                         onNewSale={() => handleNewSale(selectedClient)}
@@ -149,6 +205,11 @@ export function ClientsPage() {
                             <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Clients</h1>
                             <p className="text-[13px] text-slate-500 font-medium">
                                 Gérez votre fichier client et consultez leur historique
+                                {pagination.total > 0 && (
+                                    <span className="ml-2 text-slate-400">
+                                        · {pagination.total} client{pagination.total > 1 ? 's' : ''}
+                                    </span>
+                                )}
                             </p>
                         </div>
                         <div className="flex items-center gap-3">
@@ -173,9 +234,9 @@ export function ClientsPage() {
                     </div>
 
                     {/* ── Main View: List ──────────────────────────────────── */}
-                    <div className="container-none space-y-4 p-4 border border-border rounded-lg bg-background shadow-sm overflow-x-auto">
+                    <div className="container-none space-y-4 p-4 border border-border rounded-lg bg-white shadow-sm overflow-x-auto">
                         {/* Toolbar */}
-                        <div className="flex flex-wrap gap-4 items-center justify-between mb-6">
+                        <div className="flex flex-wrap gap-4 items-center justify-between p-3 mb-4 bg-slate-50 rounded-lg border border-slate-200/60">
                             <ClientsSearch value={searchQuery} onChange={setSearchQuery} />
 
                             <div className="flex gap-2 items-center">
@@ -183,7 +244,7 @@ export function ClientsPage() {
 
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <Button variant="outline" size="sm">
+                                        <Button variant="outline" size="sm" className="bg-white">
                                             Colonnes
                                         </Button>
                                     </DropdownMenuTrigger>
@@ -199,6 +260,15 @@ export function ClientsPage() {
                                         ))}
                                     </DropdownMenuContent>
                                 </DropdownMenu>
+
+                                <Button 
+                                    variant="outline" 
+                                    size="icon" 
+                                    onClick={() => loadClients(pagination.page)} 
+                                    className="bg-white h-9 w-9"
+                                >
+                                    <RefreshCw className={cn("h-4 w-4", isLoading && "animate-spin")} />
+                                </Button>
                             </div>
                         </div>
 
@@ -208,14 +278,60 @@ export function ClientsPage() {
                                 clients={filteredClients}
                                 onView={handleViewClient}
                                 onEdit={handleEditClient}
+                                isLoading={isLoading}
                                 visibleColumns={visibleColumns}
                             />
                         </div>
+
+                        {/* Pagination */}
+                        {pagination.totalPages > 1 && (
+                            <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+                                <p className="text-sm text-slate-500">
+                                    Page {pagination.page} sur {pagination.totalPages}
+                                    <span className="text-slate-400 ml-1">({pagination.total} résultats)</span>
+                                </p>
+                                <div className="flex items-center gap-2">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        disabled={pagination.page <= 1}
+                                        onClick={() => handlePageChange(pagination.page - 1)}
+                                        className="h-8 text-xs"
+                                    >
+                                        Précédent
+                                    </Button>
+                                    {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                                        const startPage = Math.max(1, pagination.page - 2)
+                                        const pageNum = startPage + i
+                                        if (pageNum > pagination.totalPages) return null
+                                        return (
+                                            <Button
+                                                key={pageNum}
+                                                variant={pageNum === pagination.page ? "default" : "outline"}
+                                                size="sm"
+                                                onClick={() => handlePageChange(pageNum)}
+                                                className={`h-8 w-8 p-0 text-xs ${pageNum === pagination.page ? 'bg-indigo-600 hover:bg-indigo-700 text-white' : ''}`}
+                                            >
+                                                {pageNum}
+                                            </Button>
+                                        )
+                                    })}
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        disabled={pagination.page >= pagination.totalPages}
+                                        onClick={() => handlePageChange(pagination.page + 1)}
+                                        className="h-8 text-xs"
+                                    >
+                                        Suivant
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </>
             )}
 
-            {/* ── Drawer: Formulaire Client ────────────────────────── */}
             <Sheet open={isFormOpen} onOpenChange={setIsFormOpen}>
                 <SheetContent className="w-full sm:max-w-md p-6 overflow-hidden sm:rounded-l-2xl border-l flex flex-col h-full bg-white">
                     <SheetHeader className="mb-6">
@@ -228,12 +344,12 @@ export function ClientsPage() {
                             initialData={selectedClient || undefined}
                             onSubmit={handleSaveClient}
                             onCancel={() => setIsFormOpen(false)}
+                            isSubmitting={isSubmitting}
                         />
                     </div>
                 </SheetContent>
             </Sheet>
 
-            {/* ── Modal: Suppression ───────────────────────────────── */}
             <ClientDeleteDialog
                 client={selectedClient}
                 open={isDeleteDialogOpen}
@@ -241,7 +357,6 @@ export function ClientsPage() {
                 onConfirm={handleConfirmDelete}
             />
 
-            {/* ── Modal: Import/Export ─────────────────────────────── */}
             <ImportExportModal
                 open={isImportExportOpen}
                 onOpenChange={setIsImportExportOpen}

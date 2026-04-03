@@ -14,15 +14,16 @@ interface SalesTableRowProps {
 }
 
 export function SalesTableRow({ sale, onViewDetails, onRefund, visibleColumns }: SalesTableRowProps) {
-    const PaymentIcon = sale.paymentMethod === 'cash' ? Banknote : sale.paymentMethod === 'card' ? CreditCard : Smartphone;
-    const paymentLabel = sale.paymentMethod === 'cash' ? 'Espèces' : sale.paymentMethod === 'card' ? 'Carte' : 'Mobile';
+    const paymentMethod = sale.payments?.[0]?.method || 'CASH';
+    const PaymentIcon = paymentMethod === 'CASH' ? Banknote : paymentMethod === 'CARD' ? CreditCard : Smartphone;
+    const paymentLabel = paymentMethod === 'CASH' ? 'Espèces' : paymentMethod === 'CARD' ? 'Carte' : 'Mobile';
 
     // Generate initial for avatar
     const nameStr = sale.customer?.name || "Anonyme";
     const initial = nameStr.charAt(0).toUpperCase();
 
     return (
-        <TableRow className="group hover:bg-slate-50/50 transition-all duration-200 border-b border-slate-100 last:border-0">            {visibleColumns.includes("N° Facture") && (
+        <TableRow className="group hover:bg-slate-50 transition-all duration-200 border-b border-slate-100 last:border-0">            {visibleColumns.includes("N° Facture") && (
                 <TableCell className="font-semibold text-slate-800 py-5 pl-4 pr-6 whitespace-nowrap">
                     <div className="flex items-center space-x-2">
                         <span className="text-[13px] font-mono tracking-tight text-slate-700">{sale.invoiceNumber}</span>
@@ -32,8 +33,8 @@ export function SalesTableRow({ sale, onViewDetails, onRefund, visibleColumns }:
             {visibleColumns.includes("Date / Heure") && (
                 <TableCell className="text-slate-500 py-5 px-6 whitespace-nowrap">
                     <div className="flex flex-col">
-                        <span className="text-[13px] text-slate-700 font-medium">{formatDateTime(sale.date).split(' ')[0]}</span>
-                        <span className="text-[11px] text-slate-400 font-medium uppercase tracking-wider">{formatDateTime(sale.date).split(' ')[1] || sale.date.split('T')[1].substring(0, 5)}</span>
+                        <span className="text-[13px] text-slate-700 font-medium">{formatDateTime(sale.createdAt).split(' ')[0]}</span>
+                        <span className="text-[11px] text-slate-400 font-medium uppercase tracking-wider">{formatDateTime(sale.createdAt).split(' ')[1] || sale.createdAt.split('T')[1].substring(0, 5)}</span>
                     </div>
                 </TableCell>
             )}
@@ -53,7 +54,7 @@ export function SalesTableRow({ sale, onViewDetails, onRefund, visibleColumns }:
             {visibleColumns.includes("Articles") && (
                 <TableCell className="text-slate-600 py-5 px-6 whitespace-nowrap">
                     <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-md bg-slate-100/80 border border-slate-200/50 text-[10px] font-semibold text-slate-600 uppercase tracking-tight">
-                        {sale.items.reduce((acc, item) => acc + item.quantity, 0)} {sale.items.reduce((acc, item) => acc + item.quantity, 0) > 1 ? 'articles' : 'article'}
+                        {(sale.items || []).reduce((acc, item) => acc + item.quantity, 0)} {(!sale.items || sale.items.reduce((acc, item) => acc + item.quantity, 0) > 1) ? 'articles' : 'article'}
                     </span>
                 </TableCell>
             )}
@@ -81,7 +82,7 @@ export function SalesTableRow({ sale, onViewDetails, onRefund, visibleColumns }:
                         <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-indigo-600 hover:bg-white border border-transparent hover:border-slate-200 shadow-none hover:shadow-sm transition-all" onClick={() => onViewDetails(sale)}>
                             <FileText className="h-3.5 w-3.5" />
                         </Button>
-                        {sale.status !== 'refunded' && (
+                        {sale.status === 'COMPLETED' && (
                             <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-rose-600 hover:bg-white border border-transparent hover:border-slate-200 shadow-none hover:shadow-sm transition-all" onClick={() => onRefund(sale)}>
                                 <Undo2 className="h-3.5 w-3.5" />
                             </Button>
@@ -100,7 +101,7 @@ export function SalesTableRow({ sale, onViewDetails, onRefund, visibleColumns }:
                                     <FileText className="h-4 w-4 mr-2 opacity-70" />
                                     Détails de la vente
                                 </DropdownMenuItem>
-                                {sale.status !== 'refunded' && (
+                                {sale.status === 'COMPLETED' && (
                                     <>
                                         <DropdownMenuItem
                                             className="cursor-pointer text-rose-600 focus:text-rose-700 focus:bg-rose-50/80 font-medium rounded-lg py-2"
