@@ -51,7 +51,7 @@ export function POSLayout() {
 
     return (
         <div className={cn(
-            "flex flex-col w-full bg-muted/20 overflow-hidden relative",
+            "flex flex-col bg-muted/20 overflow-hidden relative",
             "h-[calc(100vh-3.5rem)] -m-4 md:-m-6 lg:-m-8" // Annule le padding du AppShell (p-4, p-6, p-8)
         )}>
             {/* ── MAIN LAYOUT ───────────────────────────────────── */}

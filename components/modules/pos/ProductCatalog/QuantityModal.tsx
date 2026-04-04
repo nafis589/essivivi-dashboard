@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Product } from "@/lib/types/pos";
+import type { POSProduct } from "@/lib/types/pos.types";
+import { getStockStatus } from "@/lib/types/pos.types";
 import {
     Dialog,
     DialogContent,
@@ -13,15 +14,20 @@ import {
 import { Button } from "@/components/ui/button";
 import { QuantitySelector } from "../Shared/QuantitySelector";
 import Image from "next/image";
-import { getStockStatus } from "@/lib/types/pos";
 import { cn } from "@/lib/utils";
-import { PackagePlus } from "lucide-react";
+import { PackagePlus, Package } from "lucide-react";
 
 interface QuantityModalProps {
-    product: Product | null;
+    product: POSProduct | null;
     isOpen: boolean;
     onClose: () => void;
     onConfirm: (quantity: number) => void;
+}
+
+function getProductImage(product: POSProduct): string | null {
+    if (product.images && product.images.length > 0) return product.images[0].url;
+    if (product.imageUrl) return product.imageUrl;
+    return null;
 }
 
 export function QuantityModal({
@@ -40,6 +46,7 @@ export function QuantityModal({
 
     const status = getStockStatus(product);
     const total = product.price * quantity;
+    const imageUrl = getProductImage(product);
 
     const handleConfirm = () => {
         onConfirm(quantity);
@@ -61,21 +68,25 @@ export function QuantityModal({
 
                 {/* Product preview */}
                 <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/40 border">
-                    <div className="relative h-14 w-14 rounded-lg overflow-hidden bg-muted shrink-0">
-                        <Image
-                            src={product.imageUrl}
-                            alt={product.name}
-                            fill
-                            className="object-cover"
-                            unoptimized
-                        />
+                    <div className="relative h-14 w-14 rounded-lg overflow-hidden bg-muted shrink-0 flex items-center justify-center">
+                        {imageUrl ? (
+                            <Image
+                                src={imageUrl}
+                                alt={product.name}
+                                fill
+                                className="object-cover"
+                                unoptimized
+                            />
+                        ) : (
+                            <Package className="h-6 w-6 text-muted-foreground/40" />
+                        )}
                     </div>
                     <div className="flex-1 min-w-0">
                         <p className="font-semibold text-sm line-clamp-2 leading-tight">
                             {product.name}
                         </p>
                         <p className="text-xs text-muted-foreground mt-0.5">
-                            {product.price.toLocaleString()} FCFA / {product.unit ?? "pièce"}
+                            {product.price.toLocaleString()} FCFA / pièce
                         </p>
                         <p
                             className={cn(

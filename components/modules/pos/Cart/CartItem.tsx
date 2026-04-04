@@ -1,15 +1,21 @@
 "use client";
 
 import Image from "next/image";
-import { CartItem as CartItemType } from "@/lib/types/pos";
+import type { CartItem as CartItemType } from "@/lib/types/pos.types";
 import { useCartStore } from "@/lib/store/useCartStore";
 import { QuantitySelector } from "../Shared/QuantitySelector";
 import { Button } from "@/components/ui/button";
-import { X } from "lucide-react";
+import { X, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface CartItemProps {
     item: CartItemType;
+}
+
+function getProductImage(product: CartItemType["product"]): string | null {
+    if (product.images && product.images.length > 0) return product.images[0].url;
+    if (product.imageUrl) return product.imageUrl;
+    return null;
 }
 
 export function CartItem({ item }: CartItemProps) {
@@ -18,6 +24,7 @@ export function CartItem({ item }: CartItemProps) {
 
     const lineTotal = item.product.price * item.quantity;
     const isMaxStock = item.quantity >= item.product.stock;
+    const imageUrl = getProductImage(item.product);
 
     return (
         <div className={cn(
@@ -25,16 +32,20 @@ export function CartItem({ item }: CartItemProps) {
             "hover:bg-muted/30 transition-colors",
             "last:border-b-0"
         )}>
-            {/* Product image */}
-            <div className="relative h-12 w-12 rounded-lg overflow-hidden bg-muted shrink-0">
-                <Image
-                    src={item.product.imageUrl}
-                    alt={item.product.name}
-                    fill
-                    className="object-cover"
-                    sizes="48px"
-                    unoptimized
-                />
+            {/* Product image or placeholder */}
+            <div className="relative h-12 w-12 rounded-lg overflow-hidden bg-muted shrink-0 flex items-center justify-center">
+                {imageUrl ? (
+                    <Image
+                        src={imageUrl}
+                        alt={item.product.name}
+                        fill
+                        className="object-cover"
+                        sizes="48px"
+                        unoptimized
+                    />
+                ) : (
+                    <Package className="h-5 w-5 text-muted-foreground/40" />
+                )}
             </div>
 
             {/* Content */}
@@ -55,7 +66,7 @@ export function CartItem({ item }: CartItemProps) {
                 </div>
 
                 <p className="text-xs text-muted-foreground mt-0.5">
-                    {item.product.price.toLocaleString()} FCFA / {item.product.unit ?? "u"}
+                    {item.product.price.toLocaleString()} FCFA / u.
                 </p>
 
                 {/* Bottom row: qty selector + total */}

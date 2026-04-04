@@ -20,7 +20,7 @@ export function CartSummary() {
                 <span className="tabular-nums font-medium">{subtotal.toLocaleString()} FCFA</span>
             </div>
             <div className="flex justify-between items-center text-sm">
-                <span className="text-muted-foreground">TVA (10%)</span>
+                <span className="text-muted-foreground">Taxes</span>
                 <span className="tabular-nums text-muted-foreground">+{tax.toLocaleString()} FCFA</span>
             </div>
 

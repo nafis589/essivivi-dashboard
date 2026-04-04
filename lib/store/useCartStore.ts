@@ -1,151 +1,129 @@
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
-import { CartItem, Customer, PaymentMethod, Product, SaleRecord } from "@/lib/types/pos";
-import { MOCK_CUSTOMERS } from "@/lib/mock-data/pos";
+/**
+ * useCartStore — Zustand store pour le POS
+ *
+ * Gère le panier local + le client sélectionné.
+ * Ne fait plus appel aux mocks — la soumission de vente est
+ * déléguée à createPOSSale() dans le PaymentModal.
+ */
+
+import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
+import type { CartItem, POSProduct, POSCustomer, PaymentMethod } from '@/lib/types/pos.types'
 
 interface CartStore {
-    // State
-    items: CartItem[];
-    customerId?: number;
-    offlineSales: SaleRecord[];
+  items: CartItem[]
+  selectedCustomer: POSCustomer | null
+  subtotal: number
+  tax: number
+  total: number
+  itemCount: number
 
-    // Computed (via getters)
-    readonly subtotal: number;
-    readonly tax: number;
-    readonly total: number;
-    readonly itemCount: number;
-    readonly customer: Customer | undefined;
+  addItem: (product: POSProduct, quantity?: number) => { success: boolean; message?: string }
+  updateQuantity: (itemId: string, quantity: number) => void
+  removeItem: (itemId: string) => void
+  clearCart: () => void
+  setCustomer: (customer: POSCustomer | null) => void
+}
 
-    // Actions
-    addItem: (product: Product, quantity?: number) => { success: boolean; message?: string };
-    updateQuantity: (itemId: string, quantity: number) => void;
-    removeItem: (itemId: string) => void;
-    clearCart: () => void;
-    setCustomer: (customerId?: number) => void;
-    recordSale: (method: PaymentMethod) => SaleRecord;
+const calculateTotals = (items: CartItem[]) => {
+  const subtotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0)
+  const tax = 0
+  const total = subtotal + tax
+  const itemCount = items.reduce((sum, item) => sum + item.quantity, 0)
+  return { subtotal, tax, total, itemCount }
 }
 
 export const useCartStore = create<CartStore>()(
-    persist(
-        (set, get) => ({
-            items: [],
-            customerId: undefined,
-            offlineSales: [],
+  persist(
+    (set, get) => ({
+      items: [],
+      selectedCustomer: null,
+      subtotal: 0,
+      tax: 0,
+      total: 0,
+      itemCount: 0,
 
-            get subtotal() {
-                return get().items.reduce(
-                    (sum, item) => sum + item.product.price * item.quantity,
-                    0
-                );
-            },
+      addItem(product: POSProduct, quantity = 1) {
+        const state = get()
+        const existingItem = state.items.find((item) => item.product.id === product.id)
+        const currentQty = existingItem?.quantity ?? 0
 
-            get tax() {
-                return Math.round(get().subtotal * 0.1);
-            },
-
-            get total() {
-                return get().subtotal + get().tax;
-            },
-
-            get itemCount() {
-                return get().items.reduce((sum, item) => sum + item.quantity, 0);
-            },
-
-            get customer() {
-                const id = get().customerId;
-                return id ? MOCK_CUSTOMERS.find((c) => c.id === id) : undefined;
-            },
-
-            addItem: (product: Product, quantity = 1) => {
-                const state = get();
-                const existingItem = state.items.find((item) => item.product.id === product.id);
-                const currentQty = existingItem?.quantity ?? 0;
-
-                if (product.stock === 0) {
-                    return { success: false, message: "Produit en rupture de stock" };
-                }
-
-                if (currentQty + quantity > product.stock) {
-                    return {
-                        success: false,
-                        message: `Stock insuffisant. Disponible : ${product.stock - currentQty}`,
-                    };
-                }
-
-                set((state) => {
-                    if (existingItem) {
-                        return {
-                            items: state.items.map((item) =>
-                                item.product.id === product.id
-                                    ? { ...item, quantity: item.quantity + quantity }
-                                    : item
-                            ),
-                        };
-                    }
-                    return {
-                        items: [...state.items, { id: product.id, product, quantity }],
-                    };
-                });
-
-                return { success: true };
-            },
-
-            updateQuantity: (itemId: string, quantity: number) => {
-                set((state) => {
-                    if (quantity <= 0) {
-                        return { items: state.items.filter((item) => item.id !== itemId) };
-                    }
-                    return {
-                        items: state.items.map((item) =>
-                            item.id === itemId ? { ...item, quantity } : item
-                        ),
-                    };
-                });
-            },
-
-            removeItem: (itemId: string) => {
-                set((state) => ({
-                    items: state.items.filter((item) => item.id !== itemId),
-                }));
-            },
-
-            clearCart: () => {
-                set({ items: [], customerId: undefined });
-            },
-
-            setCustomer: (customerId?: number) => {
-                set({ customerId });
-            },
-
-            recordSale: (method: PaymentMethod) => {
-                const state = get();
-                const receiptNumber = `FC-${Date.now().toString(36).toUpperCase()}`;
-                const sale: SaleRecord = {
-                    id: crypto.randomUUID(),
-                    items: [...state.items],
-                    subtotal: state.subtotal,
-                    tax: state.tax,
-                    total: state.total,
-                    customerId: state.customerId,
-                    paymentMethod: method,
-                    createdAt: new Date(),
-                    receiptNumber,
-                    isOffline: typeof window !== "undefined" && !navigator.onLine,
-                };
-
-                if (sale.isOffline) {
-                    set((s) => ({ offlineSales: [...s.offlineSales, sale] }));
-                }
-
-                return sale;
-            },
-        }),
-        {
-            name: "pos-cart-storage",
-            partialize: (state) => ({
-                // Only persist offline sales
-                offlineSales: state.offlineSales,
-            }),
+        if (product.stock === 0) {
+          return { success: false, message: 'Produit en rupture de stock' }
         }
-    )
-);
+
+        if (currentQty + quantity > product.stock) {
+          return {
+            success: false,
+            message: `Stock insuffisant. Disponible : ${product.stock - currentQty}`,
+          }
+        }
+
+        set((state) => {
+          let newItems: CartItem[]
+          if (existingItem) {
+            newItems = state.items.map((item) =>
+              item.product.id === product.id
+                ? { ...item, quantity: item.quantity + quantity }
+                : item
+            )
+          } else {
+            newItems = [
+              ...state.items,
+              {
+                id: `${product.id}-${Date.now()}`,
+                product,
+                quantity,
+              },
+            ]
+          }
+          return {
+            items: newItems,
+            ...calculateTotals(newItems),
+          }
+        })
+
+        return { success: true }
+      },
+
+      updateQuantity(itemId: string, quantity: number) {
+        set((state) => {
+          let newItems: CartItem[]
+          if (quantity <= 0) {
+            newItems = state.items.filter((item) => item.id !== itemId)
+          } else {
+            newItems = state.items.map((item) =>
+              item.id === itemId ? { ...item, quantity } : item
+            )
+          }
+          return {
+            items: newItems,
+            ...calculateTotals(newItems),
+          }
+        })
+      },
+
+      removeItem(itemId: string) {
+        set((state) => {
+          const newItems = state.items.filter((item) => item.id !== itemId)
+          return {
+            items: newItems,
+            ...calculateTotals(newItems),
+          }
+        })
+      },
+
+      clearCart() {
+        set({ items: [], selectedCustomer: null, subtotal: 0, tax: 0, total: 0, itemCount: 0 })
+      },
+
+      setCustomer(customer: POSCustomer | null) {
+        set({ selectedCustomer: customer })
+      },
+    }),
+    {
+      name: 'pos-cart-storage',
+      partialize: () => ({}), // Ne rien persister
+    }
+  )
+)

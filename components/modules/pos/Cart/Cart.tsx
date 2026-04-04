@@ -22,7 +22,7 @@ export function Cart({ onPaymentOpen, onBackToCatalog }: CartProps) {
     return (
         <div className="flex flex-col h-full bg-background">
             {/* Cart header */}
-            <div className="shrink-0 flex items-center justify-between px-4 py-3 border-b bg-card/50">
+            <div className="shrink-0 flex items-center justify-between px-4 py-3 bg-card/50">
                 <div className="flex items-center gap-2">
                     {/* Mobile back button */}
                     {onBackToCatalog && (
@@ -47,7 +47,7 @@ export function Cart({ onPaymentOpen, onBackToCatalog }: CartProps) {
             </div>
 
             {/* Customer selector */}
-            <div className="shrink-0 px-3 py-2.5 border-b bg-card/20">
+            <div className="shrink-0 px-3 py-2.5 bg-card/20">
                 <CustomerSelector />
             </div>
 

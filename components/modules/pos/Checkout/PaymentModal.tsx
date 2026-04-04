@@ -1,16 +1,17 @@
 "use client";
 
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useState } from "react";
-import { PaymentMethod } from "@/lib/types/pos";
+import type { PaymentMethod, SaleRecord } from "@/lib/types/pos.types";
 import { PaymentMethods } from "./PaymentMethods";
 import { CashPayment } from "./CashPayment";
 import { MobilePayment } from "./MobilePayment";
 import { CardPayment } from "./CardPayment";
 import { Receipt } from "./Receipt";
 import { useCartStore } from "@/lib/store/useCartStore";
-import { SaleRecord } from "@/lib/types/pos";
+import { createPOSSale } from "@/lib/modules/pos/api";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface PaymentModalProps {
     isOpen: boolean;
@@ -20,26 +21,78 @@ interface PaymentModalProps {
 type Step = "method" | "details" | "receipt";
 
 export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
-    const [method, setMethod] = useState<PaymentMethod>("cash");
+    const [method, setMethod] = useState<PaymentMethod>("CASH");
     const [step, setStep] = useState<Step>("method");
     const [sale, setSale] = useState<SaleRecord | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
+    const items = useCartStore((state) => state.items);
+    const selectedCustomer = useCartStore((state) => state.selectedCustomer);
     const clearCart = useCartStore((state) => state.clearCart);
-    const recordSale = useCartStore((state) => state.recordSale);
 
     const handleMethodNext = () => setStep("details");
 
-    const handlePaymentConfirm = () => {
-        const newSale = recordSale(method);
-        setSale(newSale);
-        setStep("receipt");
+    const handlePaymentConfirm = async () => {
+        if (isSubmitting) return;
+        setIsSubmitting(true);
+
+        try {
+            const payload = {
+                customerId: selectedCustomer?.id ?? null,
+                items: items.map((item) => ({
+                    productId: item.product.id,
+                    quantity: item.quantity,
+                })),
+                paymentMethod: method,
+            };
+
+            const response = await createPOSSale(payload);
+
+            if (response.success && response.data) {
+                const apiSale = response.data;
+
+                // Construire le SaleRecord à partir de la réponse API
+                const newSale: SaleRecord = {
+                    id: apiSale.id,
+                    invoiceNumber: apiSale.invoiceNumber,
+                    items: apiSale.items.map((item) => ({
+                        id: item.id,
+                        productId: item.productId,
+                        name: item.name,
+                        quantity: item.quantity,
+                        price: item.price,
+                        total: item.total,
+                    })),
+                    subtotal: apiSale.subtotal,
+                    tax: apiSale.tax,
+                    total: apiSale.total,
+                    customerId: apiSale.customer?.id ?? null,
+                    customerName: apiSale.customer?.name ?? null,
+                    customerPhone: apiSale.customer?.phone ?? null,
+                    paymentMethod: method,
+                    createdAt: apiSale.createdAt,
+                    status: apiSale.status,
+                };
+
+                setSale(newSale);
+                setStep("receipt");
+                toast.success(response.message || "Vente enregistrée avec succès");
+            }
+        } catch (err: unknown) {
+            const msg = err && typeof err === "object" && "message" in err
+                ? String((err as { message: string }).message)
+                : "Impossible d'enregistrer la vente";
+            toast.error("Erreur", { description: msg });
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const handleNewSale = () => {
         clearCart();
         setSale(null);
         setStep("method");
-        setMethod("cash");
+        setMethod("CASH");
         onClose();
     };
 
@@ -69,6 +122,7 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
                 className="sm:max-w-lg max-h-[92vh] flex flex-col p-0 gap-0 overflow-hidden"
                 aria-label="Modal de paiement"
             >
+                <DialogTitle className="sr-only">Paiement</DialogTitle>
                 {/* Step indicator header */}
                 <div className="shrink-0 px-6 pt-5 pb-4 border-b bg-card">
                     <div className="flex items-center justify-between mb-3">
@@ -130,14 +184,26 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
 
                     {step === "details" && (
                         <>
-                            {method === "cash" && (
-                                <CashPayment onConfirm={handlePaymentConfirm} onBack={handleBack} />
+                            {method === "CASH" && (
+                                <CashPayment
+                                    onConfirm={handlePaymentConfirm}
+                                    onBack={handleBack}
+                                    isSubmitting={isSubmitting}
+                                />
                             )}
-                            {method === "mobile" && (
-                                <MobilePayment onConfirm={handlePaymentConfirm} onBack={handleBack} />
+                            {method === "MOBILE_MONEY" && (
+                                <MobilePayment
+                                    onConfirm={handlePaymentConfirm}
+                                    onBack={handleBack}
+                                    isSubmitting={isSubmitting}
+                                />
                             )}
-                            {method === "card" && (
-                                <CardPayment onConfirm={handlePaymentConfirm} onBack={handleBack} />
+                            {method === "CARD" && (
+                                <CardPayment
+                                    onConfirm={handlePaymentConfirm}
+                                    onBack={handleBack}
+                                    isSubmitting={isSubmitting}
+                                />
                             )}
                         </>
                     )}

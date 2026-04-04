@@ -1,21 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { UserPlus, UserCircle2, X, ChevronDown, Star } from "lucide-react";
+import { UserPlus, UserCircle2, X, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Customer } from "@/lib/types/pos";
+import type { POSCustomer } from "@/lib/types/pos.types";
 import { useCartStore } from "@/lib/store/useCartStore";
 import { CustomerSearch } from "../Customer/CustomerSearch";
 import { cn } from "@/lib/utils";
 
 export function CustomerSelector() {
-    const customerId = useCartStore((state) => state.customerId);
-    const customer = useCartStore((state) => state.customer);
+    const selectedCustomer = useCartStore((state) => state.selectedCustomer);
     const setCustomer = useCartStore((state) => state.setCustomer);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
 
-    if (customer) {
+    if (selectedCustomer) {
         return (
             <>
                 <div
@@ -37,18 +36,17 @@ export function CustomerSelector() {
                             <UserCircle2 className="h-5 w-5 text-primary" />
                         </div>
                         <div className="min-w-0">
-                            <p className="font-semibold text-sm leading-none truncate">{customer.name}</p>
+                            <p className="font-semibold text-sm leading-none truncate">{selectedCustomer.name}</p>
                             <div className="flex items-center gap-1.5 mt-0.5">
-                                {customer.phone && (
-                                    <p className="text-[11px] text-muted-foreground">{customer.phone}</p>
+                                {selectedCustomer.phone && (
+                                    <p className="text-[11px] text-muted-foreground">{selectedCustomer.phone}</p>
                                 )}
-                                {customer.points !== undefined && customer.points > 0 && (
+                                {selectedCustomer.totalPurchases !== undefined && selectedCustomer.totalPurchases > 0 && (
                                     <Badge
                                         variant="secondary"
-                                        className="text-[9px] h-4 px-1 font-bold gap-0.5"
+                                        className="text-[9px] h-4 px-1 font-bold"
                                     >
-                                        <Star className="h-2 w-2 fill-current text-amber-500" />
-                                        {customer.points} pts
+                                        {selectedCustomer.totalPurchases} achat{selectedCustomer.totalPurchases > 1 ? "s" : ""}
                                     </Badge>
                                 )}
                             </div>
@@ -63,7 +61,7 @@ export function CustomerSelector() {
                             className="h-6 w-6 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded"
                             onClick={(e) => {
                                 e.stopPropagation();
-                                setCustomer(undefined);
+                                setCustomer(null);
                             }}
                             aria-label="Retirer le client"
                         >
@@ -75,8 +73,8 @@ export function CustomerSelector() {
                 <CustomerSearch
                     isOpen={isSearchOpen}
                     onClose={() => setIsSearchOpen(false)}
-                    onSelect={(c: Customer) => {
-                        setCustomer(c.id);
+                    onSelect={(c: POSCustomer) => {
+                        setCustomer(c);
                         setIsSearchOpen(false);
                     }}
                 />
@@ -103,8 +101,8 @@ export function CustomerSelector() {
             <CustomerSearch
                 isOpen={isSearchOpen}
                 onClose={() => setIsSearchOpen(false)}
-                onSelect={(customer: Customer) => {
-                    setCustomer(customer.id);
+                onSelect={(customer: POSCustomer) => {
+                    setCustomer(customer);
                     setIsSearchOpen(false);
                 }}
             />

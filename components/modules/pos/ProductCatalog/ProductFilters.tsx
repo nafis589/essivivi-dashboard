@@ -70,8 +70,6 @@ export function ProductFilters({
                     );
                 })}
 
-                {/* Separator */}
-                <div className="w-px h-5 bg-border mx-1 shrink-0" />
 
                 {/* Category filters */}
                 {categories.map((category) => {

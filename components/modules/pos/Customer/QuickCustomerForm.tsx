@@ -4,28 +4,46 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Customer } from "@/lib/types/pos";
-import { UserPlus, ArrowLeft } from "lucide-react";
+import { UserPlus, ArrowLeft, Loader2 } from "lucide-react";
+import { createPOSCustomer } from "@/lib/modules/pos/api";
+import type { POSCustomer } from "@/lib/types/pos.types";
+import { toast } from "sonner";
 
 interface QuickCustomerFormProps {
     onCancel: () => void;
-    onSubmit: (customer: Omit<Customer, "id">) => void;
+    onCreated: (customer: POSCustomer) => void;
 }
 
-export function QuickCustomerForm({ onCancel, onSubmit }: QuickCustomerFormProps) {
+export function QuickCustomerForm({ onCancel, onCreated }: QuickCustomerFormProps) {
     const [name, setName] = useState("");
     const [phone, setPhone] = useState("");
     const [email, setEmail] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!name.trim()) return;
-        onSubmit({
-            name: name.trim(),
-            phone: phone.trim() || undefined,
-            email: email.trim() || undefined,
-            points: 0,
-        });
+
+        setIsSubmitting(true);
+        try {
+            const response = await createPOSCustomer({
+                name: name.trim(),
+                phone: phone.trim() || undefined,
+                email: email.trim() || undefined,
+            });
+
+            if (response.success && response.data) {
+                toast.success(`Client "${response.data.name}" créé avec succès`);
+                onCreated(response.data);
+            }
+        } catch (err: unknown) {
+            const msg = err && typeof err === "object" && "message" in err
+                ? String((err as { message: string }).message)
+                : "Impossible de créer le client";
+            toast.error("Erreur", { description: msg });
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -38,11 +56,12 @@ export function QuickCustomerForm({ onCancel, onSubmit }: QuickCustomerFormProps
                     id="qcf-name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="Ex : Amadou Koné"
+                    placeholder="Entrez le nom du client"
                     required
                     autoFocus
                     aria-required="true"
                     className="h-10"
+                    disabled={isSubmitting}
                 />
             </div>
 
@@ -56,8 +75,9 @@ export function QuickCustomerForm({ onCancel, onSubmit }: QuickCustomerFormProps
                     type="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    placeholder="Ex : 07 07 07 07 07"
+                    placeholder="Entrez le numéro de téléphone"
                     className="h-10"
+                    disabled={isSubmitting}
                 />
             </div>
 
@@ -71,8 +91,9 @@ export function QuickCustomerForm({ onCancel, onSubmit }: QuickCustomerFormProps
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Ex : amadou@email.com"
+                    placeholder="Entrez l'email du client"
                     className="h-10"
+                    disabled={isSubmitting}
                 />
             </div>
 
@@ -82,6 +103,7 @@ export function QuickCustomerForm({ onCancel, onSubmit }: QuickCustomerFormProps
                     variant="ghost"
                     className="flex-1 cursor-pointer"
                     onClick={onCancel}
+                    disabled={isSubmitting}
                 >
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Retour
@@ -89,10 +111,19 @@ export function QuickCustomerForm({ onCancel, onSubmit }: QuickCustomerFormProps
                 <Button
                     type="submit"
                     className="flex-1 cursor-pointer"
-                    disabled={!name.trim()}
+                    disabled={!name.trim() || isSubmitting}
                 >
-                    <UserPlus className="mr-2 h-4 w-4" />
-                    Créer le client
+                    {isSubmitting ? (
+                        <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Création…
+                        </>
+                    ) : (
+                        <>
+                            <UserPlus className="mr-2 h-4 w-4" />
+                            Créer le client
+                        </>
+                    )}
                 </Button>
             </div>
         </form>

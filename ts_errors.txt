@@ -1,0 +1,135 @@
+components/modules/clients/ClientForm.tsx(37,9): error TS2322: Type 'Resolver<{ name: string; email: string; phone?: string | undefined; address?: string | undefined; notes?: string | undefined; }, any, { name: string; email: string; phone?: string | undefined; address?: string | undefined; notes?: string | undefined; }>' is not assignable to type 'Resolver<ClientFormData, any, ClientFormData>'.
+  Types of parameters 'values' and 'values' are incompatible.
+    Type 'ClientFormData' is not assignable to type '{ name: string; email: string; phone?: string | undefined; address?: string | undefined; notes?: string | undefined; }'.
+      Types of property 'email' are incompatible.
+        Type 'string | undefined' is not assignable to type 'string'.
+          Type 'undefined' is not assignable to type 'string'.
+components/modules/clients/ClientForm.tsx(49,47): error TS2345: Argument of type '(data: ClientFormData) => void' is not assignable to parameter of type 'SubmitHandler<TFieldValues>'.
+  Types of parameters 'data' and 'data' are incompatible.
+    Type 'TFieldValues' is not assignable to type 'ClientFormData'.
+      Property 'name' is missing in type 'FieldValues' but required in type 'ClientFormData'.
+components/modules/clients/ClientForm.tsx(53,29): error TS2322: Type 'Control<ClientFormData, any, TFieldValues>' is not assignable to type 'Control<ClientFormData, any, ClientFormData>'.
+  The types of '_options.resolver' are incompatible between these types.
+    Type 'Resolver<ClientFormData, any, TFieldValues> | undefined' is not assignable to type 'Resolver<ClientFormData, any, ClientFormData> | undefined'.
+      Type 'Resolver<ClientFormData, any, TFieldValues>' is not assignable to type 'Resolver<ClientFormData, any, ClientFormData>'.
+        Type 'ResolverResult<ClientFormData, TFieldValues> | Promise<ResolverResult<ClientFormData, TFieldValues>>' is not assignable to type 'ResolverResult<ClientFormData, ClientFormData> | Promise<ResolverResult<ClientFormData, ClientFormData>>'.
+          Type 'ResolverSuccess<TFieldValues>' is not assignable to type 'ResolverResult<ClientFormData, ClientFormData> | Promise<ResolverResult<ClientFormData, ClientFormData>>'.
+            Type 'ResolverSuccess<TFieldValues>' is not assignable to type 'ResolverSuccess<ClientFormData>'.
+              Type 'TFieldValues' is not assignable to type 'ClientFormData'.
+                Property 'name' is missing in type 'FieldValues' but required in type 'ClientFormData'.
+components/modules/clients/ClientForm.tsx(68,33): error TS2322: Type 'Control<ClientFormData, any, TFieldValues>' is not assignable to type 'Control<ClientFormData, any, ClientFormData>'.
+  The types of '_options.resolver' are incompatible between these types.
+    Type 'Resolver<ClientFormData, any, TFieldValues> | undefined' is not assignable to type 'Resolver<ClientFormData, any, ClientFormData> | undefined'.
+      Type 'Resolver<ClientFormData, any, TFieldValues>' is not assignable to type 'Resolver<ClientFormData, any, ClientFormData>'.
+        Type 'ResolverResult<ClientFormData, TFieldValues> | Promise<ResolverResult<ClientFormData, TFieldValues>>' is not assignable to type 'ResolverResult<ClientFormData, ClientFormData> | Promise<ResolverResult<ClientFormData, ClientFormData>>'.
+          Type 'ResolverSuccess<TFieldValues>' is not assignable to type 'ResolverResult<ClientFormData, ClientFormData> | Promise<ResolverResult<ClientFormData, ClientFormData>>'.
+            Type 'ResolverSuccess<TFieldValues>' is not assignable to type 'ResolverSuccess<ClientFormData>'.
+              Type 'TFieldValues' is not assignable to type 'ClientFormData'.
+                Property 'name' is missing in type 'FieldValues' but required in type 'ClientFormData'.
+components/modules/clients/ClientForm.tsx(82,33): error TS2322: Type 'Control<ClientFormData, any, TFieldValues>' is not assignable to type 'Control<ClientFormData, any, ClientFormData>'.
+  The types of '_options.resolver' are incompatible between these types.
+    Type 'Resolver<ClientFormData, any, TFieldValues> | undefined' is not assignable to type 'Resolver<ClientFormData, any, ClientFormData> | undefined'.
+      Type 'Resolver<ClientFormData, any, TFieldValues>' is not assignable to type 'Resolver<ClientFormData, any, ClientFormData>'.
+        Type 'ResolverResult<ClientFormData, TFieldValues> | Promise<ResolverResult<ClientFormData, TFieldValues>>' is not assignable to type 'ResolverResult<ClientFormData, ClientFormData> | Promise<ResolverResult<ClientFormData, ClientFormData>>'.
+          Type 'ResolverSuccess<TFieldValues>' is not assignable to type 'ResolverResult<ClientFormData, ClientFormData> | Promise<ResolverResult<ClientFormData, ClientFormData>>'.
+            Type 'ResolverSuccess<TFieldValues>' is not assignable to type 'ResolverSuccess<ClientFormData>'.
+              Type 'TFieldValues' is not assignable to type 'ClientFormData'.
+                Property 'name' is missing in type 'FieldValues' but required in type 'ClientFormData'.
+components/modules/clients/ClientForm.tsx(97,29): error TS2322: Type 'Control<ClientFormData, any, TFieldValues>' is not assignable to type 'Control<ClientFormData, any, ClientFormData>'.
+  The types of '_options.resolver' are incompatible between these types.
+    Type 'Resolver<ClientFormData, any, TFieldValues> | undefined' is not assignable to type 'Resolver<ClientFormData, any, ClientFormData> | undefined'.
+      Type 'Resolver<ClientFormData, any, TFieldValues>' is not assignable to type 'Resolver<ClientFormData, any, ClientFormData>'.
+        Type 'ResolverResult<ClientFormData, TFieldValues> | Promise<ResolverResult<ClientFormData, TFieldValues>>' is not assignable to type 'ResolverResult<ClientFormData, ClientFormData> | Promise<ResolverResult<ClientFormData, ClientFormData>>'.
+          Type 'ResolverSuccess<TFieldValues>' is not assignable to type 'ResolverResult<ClientFormData, ClientFormData> | Promise<ResolverResult<ClientFormData, ClientFormData>>'.
+            Type 'ResolverSuccess<TFieldValues>' is not assignable to type 'ResolverSuccess<ClientFormData>'.
+              Type 'TFieldValues' is not assignable to type 'ClientFormData'.
+                Property 'name' is missing in type 'FieldValues' but required in type 'ClientFormData'.
+components/modules/clients/ClientForm.tsx(111,29): error TS2322: Type 'Control<ClientFormData, any, TFieldValues>' is not assignable to type 'Control<ClientFormData, any, ClientFormData>'.
+  The types of '_options.resolver' are incompatible between these types.
+    Type 'Resolver<ClientFormData, any, TFieldValues> | undefined' is not assignable to type 'Resolver<ClientFormData, any, ClientFormData> | undefined'.
+      Type 'Resolver<ClientFormData, any, TFieldValues>' is not assignable to type 'Resolver<ClientFormData, any, ClientFormData>'.
+        Type 'ResolverResult<ClientFormData, TFieldValues> | Promise<ResolverResult<ClientFormData, TFieldValues>>' is not assignable to type 'ResolverResult<ClientFormData, ClientFormData> | Promise<ResolverResult<ClientFormData, ClientFormData>>'.
+          Type 'ResolverSuccess<TFieldValues>' is not assignable to type 'ResolverResult<ClientFormData, ClientFormData> | Promise<ResolverResult<ClientFormData, ClientFormData>>'.
+            Type 'ResolverSuccess<TFieldValues>' is not assignable to type 'ResolverSuccess<ClientFormData>'.
+              Type 'TFieldValues' is not assignable to type 'ClientFormData'.
+                Property 'name' is missing in type 'FieldValues' but required in type 'ClientFormData'.
+components/modules/clients/ClientPurchaseHistory.tsx(4,10): error TS2305: Module '"@/lib/modules/clients/types"' has no exported member 'PurchaseHistoryItem'.
+components/modules/clients/ClientsPage.tsx(347,29): error TS2322: Type '{ initialData: Client | undefined; onSubmit: (data: ClientFormData) => Promise<void>; onCancel: () => void; isSubmitting: boolean; }' is not assignable to type 'IntrinsicAttributes & ClientFormProps'.
+  Property 'isSubmitting' does not exist on type 'IntrinsicAttributes & ClientFormProps'.
+components/modules/clients/ClientStats.tsx(36,31): error TS2551: Property 'lastPurchaseDate' does not exist on type 'Client'. Did you mean 'lastPurchaseAt'?
+components/modules/clients/ClientStats.tsx(36,68): error TS2551: Property 'lastPurchaseDate' does not exist on type 'Client'. Did you mean 'lastPurchaseAt'?
+components/modules/clients/ClientStats.tsx(37,40): error TS2551: Property 'lastPurchaseDate' does not exist on type 'Client'. Did you mean 'lastPurchaseAt'?
+components/modules/pos/Checkout/Receipt.tsx(40,15): error TS2358: The left-hand side of an 'instanceof' expression must be of type 'any', an object type or a type parameter.
+components/modules/pos/Checkout/Receipt.tsx(95,82): error TS2339: Property 'productName' does not exist on type 'SaleItemRecord'.
+components/modules/pos/Checkout/Receipt.tsx(97,61): error TS2339: Property 'unitPrice' does not exist on type 'SaleItemRecord'.
+components/modules/pos/Checkout/Receipt.tsx(101,56): error TS2339: Property 'unitPrice' does not exist on type 'SaleItemRecord'.
+components/modules/pos/POSLayout.tsx(66,34): error TS2322: Type '{ products: Product[]; searchRef: RefObject<HTMLInputElement | null>; }' is not assignable to type 'IntrinsicAttributes & ProductGridProps'.
+  Property 'products' does not exist on type 'IntrinsicAttributes & ProductGridProps'.
+components/ui/accordion.tsx(4,37): error TS2307: Cannot find module '@radix-ui/react-accordion' or its corresponding type declarations.
+components/ui/aspect-ratio.tsx(3,39): error TS2307: Cannot find module '@radix-ui/react-aspect-ratio' or its corresponding type declarations.
+components/ui/calendar.tsx(9,60): error TS2307: Cannot find module 'react-day-picker' or its corresponding type declarations.
+components/ui/calendar.tsx(39,31): error TS7006: Parameter 'date' implicitly has an 'any' type.
+components/ui/calendar.tsx(128,18): error TS7031: Binding element 'className' implicitly has an 'any' type.
+components/ui/calendar.tsx(128,29): error TS7031: Binding element 'rootRef' implicitly has an 'any' type.
+components/ui/calendar.tsx(138,21): error TS7031: Binding element 'className' implicitly has an 'any' type.
+components/ui/calendar.tsx(138,32): error TS7031: Binding element 'orientation' implicitly has an 'any' type.
+components/ui/calendar.tsx(159,24): error TS7031: Binding element 'children' implicitly has an 'any' type.
+components/ui/carousel.tsx(6,8): error TS2307: Cannot find module 'embla-carousel-react' or its corresponding type declarations.
+components/ui/chart.tsx(109,3): error TS2339: Property 'payload' does not exist on type 'Omit<Props<ValueType, NameType>, PropertiesReadFromContext> & { active?: boolean | undefined; allowEscapeViewBox?: AllowInDimension | undefined; ... 24 more ...; wrapperStyle?: CSSProperties | undefined; } & ClassAttributes<...> & HTMLAttributes<...> & { ...; }'.
+components/ui/chart.tsx(114,3): error TS2339: Property 'label' does not exist on type 'Omit<Props<ValueType, NameType>, PropertiesReadFromContext> & { active?: boolean | undefined; allowEscapeViewBox?: AllowInDimension | undefined; ... 24 more ...; wrapperStyle?: CSSProperties | undefined; } & ClassAttributes<...> & HTMLAttributes<...> & { ...; }'.
+components/ui/chart.tsx(182,23): error TS7006: Parameter 'item' implicitly has an 'any' type.
+components/ui/chart.tsx(182,29): error TS7006: Parameter 'index' implicitly has an 'any' type.
+components/ui/chart.tsx(260,39): error TS2344: Type '"verticalAlign" | "payload"' does not satisfy the constraint '"string" | "name" | "path" | "from" | "filter" | "fill" | "values" | "slot" | "style" | "clipPath" | "mask" | "key" | "type" | "suppressHydrationWarning" | "className" | "id" | ... 434 more ... | "portal"'.
+  Type '"payload"' is not assignable to type '"string" | "name" | "path" | "from" | "filter" | "fill" | "values" | "slot" | "style" | "clipPath" | "mask" | "key" | "type" | "suppressHydrationWarning" | "className" | "id" | ... 434 more ... | "portal"'.
+components/ui/chart.tsx(266,17): error TS2339: Property 'length' does not exist on type '{}'.
+components/ui/chart.tsx(278,16): error TS2339: Property 'map' does not exist on type '{}'.
+components/ui/chart.tsx(278,21): error TS7006: Parameter 'item' implicitly has an 'any' type.
+components/ui/collapsible.tsx(3,39): error TS2307: Cannot find module '@radix-ui/react-collapsible' or its corresponding type declarations.
+components/ui/command.tsx(4,45): error TS2307: Cannot find module 'cmdk' or its corresponding type declarations.
+components/ui/context-menu.tsx(4,39): error TS2307: Cannot find module '@radix-ui/react-context-menu' or its corresponding type declarations.
+components/ui/drawer.tsx(4,43): error TS2307: Cannot find module 'vaul' or its corresponding type declarations.
+components/ui/hover-card.tsx(4,37): error TS2307: Cannot find module '@radix-ui/react-hover-card' or its corresponding type declarations.
+components/ui/input-otp.tsx(4,43): error TS2307: Cannot find module 'input-otp' or its corresponding type declarations.
+components/ui/input-otp.tsx(47,61): error TS2339: Property 'slots' does not exist on type '{}'.
+components/ui/menubar.tsx(4,35): error TS2307: Cannot find module '@radix-ui/react-menubar' or its corresponding type declarations.
+components/ui/navigation-menu.tsx(2,42): error TS2307: Cannot find module '@radix-ui/react-navigation-menu' or its corresponding type declarations.
+components/ui/popover.tsx(4,35): error TS2307: Cannot find module '@radix-ui/react-popover' or its corresponding type declarations.
+components/ui/progress.tsx(4,36): error TS2307: Cannot find module '@radix-ui/react-progress' or its corresponding type declarations.
+components/ui/radio-group.tsx(4,38): error TS2307: Cannot find module '@radix-ui/react-radio-group' or its corresponding type declarations.
+components/ui/resizable.tsx(5,37): error TS2307: Cannot find module 'react-resizable-panels' or its corresponding type declarations.
+components/ui/slider.tsx(4,34): error TS2307: Cannot find module '@radix-ui/react-slider' or its corresponding type declarations.
+components/ui/sonner.tsx(3,26): error TS2307: Cannot find module 'next-themes' or its corresponding type declarations.
+components/ui/toggle-group.tsx(4,39): error TS2307: Cannot find module '@radix-ui/react-toggle-group' or its corresponding type declarations.
+components/ui/toggle.tsx(4,34): error TS2307: Cannot find module '@radix-ui/react-toggle' or its corresponding type declarations.
+CustomTable/button-colorful.tsx(9,17): error TS2323: Cannot redeclare exported variable 'ButtonColorful'.
+CustomTable/button-colorful.tsx(44,10): error TS2323: Cannot redeclare exported variable 'ButtonColorful'.
+CustomTable/button-colorful.tsx(44,10): error TS2484: Export declaration conflicts with exported declaration of 'ButtonColorful'.
+CustomTable/demo.tsx(1,31): error TS2307: Cannot find module '@/components/ui/ruixen-contributors-table' or its corresponding type declarations.
+lib/modules/clients/mockData.ts(1,18): error TS2305: Module '"./types"' has no exported member 'PurchaseHistoryItem'.
+lib/modules/clients/mockData.ts(13,9): error TS2322: Type 'Date' is not assignable to type 'string'.
+lib/modules/clients/mockData.ts(24,9): error TS2322: Type 'Date' is not assignable to type 'string'.
+lib/modules/clients/mockData.ts(34,9): error TS2322: Type 'Date' is not assignable to type 'string'.
+lib/modules/clients/mockData.ts(43,9): error TS2322: Type 'Date' is not assignable to type 'string'.
+lib/modules/clients/mockData.ts(53,9): error TS2322: Type 'Date' is not assignable to type 'string'.
+lib/modules/clients/mockData.ts(55,163): error TS2322: Type 'Date' is not assignable to type 'string'.
+lib/modules/clients/mockData.ts(56,194): error TS2322: Type 'Date' is not assignable to type 'string'.
+lib/modules/clients/mockData.ts(57,163): error TS2322: Type 'Date' is not assignable to type 'string'.
+lib/modules/clients/mockData.ts(58,170): error TS2322: Type 'Date' is not assignable to type 'string'.
+lib/modules/clients/mockData.ts(59,165): error TS2322: Type 'Date' is not assignable to type 'string'.
+lib/modules/clients/mockData.ts(60,197): error TS2322: Type 'Date' is not assignable to type 'string'.
+lib/modules/clients/mockData.ts(61,167): error TS2322: Type 'Date' is not assignable to type 'string'.
+lib/modules/clients/mockData.ts(62,200): error TS2322: Type 'Date' is not assignable to type 'string'.
+lib/modules/clients/mockData.ts(63,143): error TS2322: Type 'Date' is not assignable to type 'string'.
+lib/modules/clients/mockData.ts(64,165): error TS2322: Type 'Date' is not assignable to type 'string'.
+lib/modules/clients/mockData.ts(65,173): error TS2322: Type 'Date' is not assignable to type 'string'.
+lib/modules/clients/mockData.ts(66,164): error TS2322: Type 'Date' is not assignable to type 'string'.
+lib/modules/clients/mockData.ts(67,196): error TS2322: Type 'Date' is not assignable to type 'string'.
+lib/modules/clients/mockData.ts(68,94): error TS2322: Type 'Date' is not assignable to type 'string'.
+lib/modules/clients/mockData.ts(69,174): error TS2322: Type 'Date' is not assignable to type 'string'.
+lib/types/index.ts(12,1): error TS2308: Module './product.types' has already exported a member named 'StockStatus'. Consider explicitly re-exporting to resolve the ambiguity.
+lib/types/index.ts(12,1): error TS2308: Module './product.types' has already exported a member named 'getStockStatus'. Consider explicitly re-exporting to resolve the ambiguity.
+lib/types/index.ts(12,1): error TS2308: Module './sale.types' has already exported a member named 'PaymentMethod'. Consider explicitly re-exporting to resolve the ambiguity.
+lib/types/index.ts(14,1): error TS2308: Module './auth.types' has already exported a member named 'User'. Consider explicitly re-exporting to resolve the ambiguity.
+lib/utils/helpers.ts(45,28): error TS2339: Property 'date' does not exist on type 'Sale'.
+lib/utils/helpers.ts(49,18): error TS2367: This comparison appears to be unintentional because the types 'SaleStatus' and '"paid"' have no overlap.
+lib/utils/helpers.ts(49,41): error TS2367: This comparison appears to be unintentional because the types 'SaleStatus' and '"partially_refunded"' have no overlap.

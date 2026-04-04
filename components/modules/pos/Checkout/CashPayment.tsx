@@ -5,17 +5,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCartStore } from "@/lib/store/useCartStore";
-import { Banknote, Coins, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { Banknote, Coins, ArrowLeft, CheckCircle2, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface CashPaymentProps {
     onConfirm: () => void;
     onBack: () => void;
+    isSubmitting?: boolean;
 }
 
 const ROUND_AMOUNTS = [500, 1000, 2000, 5000, 10000, 25000, 50000];
 
-export function CashPayment({ onConfirm, onBack }: CashPaymentProps) {
+export function CashPayment({ onConfirm, onBack, isSubmitting = false }: CashPaymentProps) {
     const total = useCartStore((state) => state.total);
     const [received, setReceived] = useState<string>(total.toString());
 
@@ -140,11 +141,14 @@ export function CashPayment({ onConfirm, onBack }: CashPaymentProps) {
                 </Button>
                 <Button
                     className="flex-2 h-12 font-bold flex-1 cursor-pointer"
-                    disabled={!isValid}
+                    disabled={!isValid || isSubmitting}
                     onClick={onConfirm}
                 >
-                    <CheckCircle2 className="mr-2 h-4 w-4" />
-                    Valider le paiement
+                    {isSubmitting ? (
+                        <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Enregistrement…</>
+                    ) : (
+                        <><CheckCircle2 className="mr-2 h-4 w-4" />Valider le paiement</>
+                    )}
                 </Button>
             </div>
         </div>

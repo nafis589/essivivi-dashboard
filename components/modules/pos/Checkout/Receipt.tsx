@@ -1,7 +1,6 @@
 "use client";
 
-import { SaleRecord } from "@/lib/types/pos";
-import { MOCK_CUSTOMERS } from "@/lib/mock-data/pos";
+import type { SaleRecord } from "@/lib/types/pos.types";
 import { Button } from "@/components/ui/button";
 import {
     CheckCircle2,
@@ -19,9 +18,9 @@ import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 
 const methodLabels: Record<string, { label: string; Icon: React.ComponentType<{ className?: string }> }> = {
-    cash: { label: "Espèces", Icon: Banknote },
-    mobile: { label: "Mobile Money", Icon: Smartphone },
-    card: { label: "Carte bancaire", Icon: CreditCard },
+    CASH: { label: "Espèces", Icon: Banknote },
+    MOBILE_MONEY: { label: "Mobile Money", Icon: Smartphone },
+    CARD: { label: "Carte bancaire", Icon: CreditCard },
 };
 
 interface ReceiptProps {
@@ -30,10 +29,6 @@ interface ReceiptProps {
 }
 
 export function Receipt({ sale, onNewSale }: ReceiptProps) {
-    const customer = sale.customerId
-        ? MOCK_CUSTOMERS.find((c) => c.id === sale.customerId)
-        : null;
-
     const { label: methodLabel, Icon: MethodIcon } = methodLabels[sale.paymentMethod] ?? {
         label: sale.paymentMethod,
         Icon: Banknote,
@@ -42,7 +37,7 @@ export function Receipt({ sale, onNewSale }: ReceiptProps) {
     const formattedDate = new Intl.DateTimeFormat("fr-FR", {
         dateStyle: "medium",
         timeStyle: "short",
-    }).format(sale.createdAt instanceof Date ? sale.createdAt : new Date(sale.createdAt));
+    }).format(new Date(sale.createdAt));
 
     return (
         <div className="space-y-5">
@@ -58,52 +53,52 @@ export function Receipt({ sale, onNewSale }: ReceiptProps) {
                 </p>
                 <div className="flex items-center gap-1.5 mt-2 px-3 py-1 bg-white/60 dark:bg-black/20 rounded-full">
                     <MethodIcon className="h-3.5 w-3.5 text-muted-foreground" />
-                    <span className="text-xs font-medium text-muted-foreground">{methodLabel}</span>
+                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                        {methodLabel}
+                    </span>
                 </div>
             </div>
 
-            {/* Ticket */}
-            <div className="border rounded-xl overflow-hidden bg-card font-mono text-sm">
-                {/* Ticket header */}
-                <div className="bg-muted/40 px-4 py-3 text-center border-b">
-                    <div className="flex items-center justify-center gap-2 mb-1">
-                        <Store className="h-4 w-4 text-primary" />
-                        <p className="font-bold text-base not-italic font-sans">FLOWCOMMERCE</p>
-                    </div>
-                    <p className="text-muted-foreground text-xs">Abidjan, Côte d&apos;Ivoire</p>
+            {/* Receipt ticket */}
+            <div className="relative bg-card rounded-xl border shadow-sm overflow-hidden font-mono">
+                <div className="absolute top-0 left-0 w-full h-1.5 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjMiPgo8cGF0aCBkPSJNMCAzdjBMMCAwaDEuNWwxIDJoM2wxLTJoMS41djNsLTQgM3oiIGZpbGw9IiNlN2U1ZTQiLz4KPC9zdmc+')] bg-repeat-x dark:opacity-20" />
 
-                    <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                            <ReceiptIcon className="h-3 w-3" />
-                            <span className="font-bold text-foreground">{sale.receiptNumber}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
-                            <span>{formattedDate}</span>
-                        </div>
+                {/* Header */}
+                <div className="pt-6 pb-4 px-4 text-center space-y-1">
+                    <div className="flex items-center justify-center gap-2 mb-2 text-foreground">
+                        <Store className="h-5 w-5" />
+                        <span className="font-bold text-sm tracking-wide uppercase">FlowPOS HQ</span>
                     </div>
-
-                    {customer && (
-                        <div className="mt-1.5 text-xs font-medium">
-                            Client : {customer.name}
-                            {customer.phone && ` (${customer.phone})`}
+                    <div className="flex justify-between items-center text-xs text-muted-foreground mt-4">
+                        <span className="flex items-center gap-1">
+                            <ReceiptIcon className="h-3.5 w-3.5" />
+                            {sale.invoiceNumber}
+                        </span>
+                        <span className="flex items-center gap-1">
+                            <Calendar className="h-3.5 w-3.5" />
+                            {formattedDate}
+                        </span>
+                    </div>
+                    {sale.customerName && (
+                        <div className="text-left mt-3 pt-3 border-t border-dashed text-xs text-muted-foreground">
+                            <p>Client : <span className="font-semibold text-foreground">{sale.customerName}</span></p>
+                            {sale.customerPhone && <p>Tél : {sale.customerPhone}</p>}
                         </div>
                     )}
                 </div>
 
                 {/* Items */}
-                <div className="px-4 py-3 space-y-1.5">
-                    <div className="flex justify-between text-xs text-muted-foreground font-semibold pb-1 border-b">
-                        <span>Article</span>
-                        <span>Montant</span>
-                    </div>
+                <div className="px-4 py-2 bg-muted/20 border-t border-b border-dashed space-y-3">
                     {sale.items.map((item) => (
-                        <div key={item.id} className="flex justify-between text-xs">
-                            <span className="truncate max-w-[60%]">
-                                {item.quantity}× {item.product.name}
-                            </span>
-                            <span className="tabular-nums font-medium">
-                                {(item.product.price * item.quantity).toLocaleString()} F
+                        <div key={item.productId} className="flex justify-between text-xs">
+                            <div className="flex-1 pr-4">
+                                <p className="font-medium text-foreground">{item.name}</p>
+                                <p className="text-muted-foreground text-[10px] mt-0.5">
+                                    {item.quantity} × {item.price.toLocaleString()} F
+                                </p>
+                            </div>
+                            <span className="font-medium text-foreground tabular-nums">
+                                {(item.quantity * item.price).toLocaleString()} F
                             </span>
                         </div>
                     ))}
@@ -116,7 +111,7 @@ export function Receipt({ sale, onNewSale }: ReceiptProps) {
                         <span className="tabular-nums">{sale.subtotal.toLocaleString()} F</span>
                     </div>
                     <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>TVA 10%</span>
+                        <span>Taxe</span>
                         <span className="tabular-nums">{sale.tax.toLocaleString()} F</span>
                     </div>
                     <Separator className="my-1.5" />
@@ -129,11 +124,6 @@ export function Receipt({ sale, onNewSale }: ReceiptProps) {
                 {/* Footer */}
                 <div className="bg-muted/30 px-4 py-2.5 text-center text-xs text-muted-foreground border-t">
                     Merci de votre confiance ! 🙏
-                    {sale.isOffline && (
-                        <p className="text-amber-600 dark:text-amber-400 font-semibold mt-0.5">
-                            ⚠ Vendu en mode hors-ligne — synchronisé ultérieurement
-                        </p>
-                    )}
                 </div>
             </div>
 

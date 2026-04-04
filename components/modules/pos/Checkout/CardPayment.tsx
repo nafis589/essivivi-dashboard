@@ -11,11 +11,12 @@ import { cn } from "@/lib/utils";
 interface CardPaymentProps {
     onConfirm: () => void;
     onBack: () => void;
+    isSubmitting?: boolean;
 }
 
 type CardStatus = "waiting" | "processing" | "success";
 
-export function CardPayment({ onConfirm, onBack }: CardPaymentProps) {
+export function CardPayment({ onConfirm, onBack, isSubmitting = false }: CardPaymentProps) {
     const total = useCartStore((state) => state.total);
     const [status, setStatus] = useState<CardStatus>("waiting");
     const [transactionRef, setTransactionRef] = useState("");
@@ -133,7 +134,7 @@ export function CardPayment({ onConfirm, onBack }: CardPaymentProps) {
             )}
 
             {/* Demo button */}
-            {status === "waiting" && (
+            {status === "waiting" && !isSubmitting && (
                 <div className="p-3 rounded-lg bg-muted/40 border border-dashed text-center space-y-2">
                     <p className="text-xs text-muted-foreground font-medium">Mode démonstration</p>
                     <Button
@@ -154,6 +155,7 @@ export function CardPayment({ onConfirm, onBack }: CardPaymentProps) {
                         variant="outline"
                         className="flex-1 cursor-pointer"
                         onClick={onBack}
+                        disabled={isSubmitting}
                     >
                         <ArrowLeft className="mr-2 h-4 w-4" />
                         Retour

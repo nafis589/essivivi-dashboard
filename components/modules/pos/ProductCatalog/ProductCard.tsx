@@ -1,13 +1,14 @@
 "use client";
 
 import Image from "next/image";
-import { Product, StockStatus, getStockStatus } from "@/lib/types/pos";
+import type { POSProduct, StockStatus } from "@/lib/types/pos.types";
+import { getStockStatus } from "@/lib/types/pos.types";
 import { cn } from "@/lib/utils";
 import { PlusCircle, Package } from "lucide-react";
 import { useRef } from "react";
 
 interface ProductCardProps {
-    product: Product;
+    product: POSProduct;
     onClick: () => void;
     onLongPress: () => void;
 }
@@ -27,6 +28,17 @@ const stockConfig: Record<StockStatus, { label: string; className: string }> = {
     },
 };
 
+// Récupère la première image disponible (images[] ou imageUrl legacy)
+function getProductImage(product: POSProduct): string | null {
+    if (product.images && product.images.length > 0) {
+        return product.images[0].url;
+    }
+    if (product.imageUrl) {
+        return product.imageUrl;
+    }
+    return null;
+}
+
 export function ProductCard({ product, onClick, onLongPress }: ProductCardProps) {
     const longPressTimer = useRef<NodeJS.Timeout | null>(null);
     const didLongPress = useRef(false);
@@ -34,6 +46,7 @@ export function ProductCard({ product, onClick, onLongPress }: ProductCardProps)
     const status = getStockStatus(product);
     const isOutOfStock = status === "out";
     const { label, className: stockClass } = stockConfig[status];
+    const imageUrl = getProductImage(product);
 
     const startLongPress = () => {
         didLongPress.current = false;
@@ -83,14 +96,21 @@ export function ProductCard({ product, onClick, onLongPress }: ProductCardProps)
         >
             {/* Image area */}
             <div className="relative aspect-square w-full overflow-hidden bg-muted/40">
-                <Image
-                    src={product.imageUrl}
-                    alt={product.name}
-                    fill
-                    className="object-cover transition-transform duration-300 group-hover:scale-105"
-                    sizes="(max-width: 768px) 50vw, 25vw"
-                    unoptimized // for placeholders
-                />
+                {imageUrl ? (
+                    <Image
+                        src={imageUrl}
+                        alt={product.name}
+                        fill
+                        className="object-cover transition-transform duration-300 group-hover:scale-105"
+                        sizes="(max-width: 768px) 50vw, 25vw"
+                        unoptimized
+                    />
+                ) : (
+                    /* Fallback quand l'image n'est pas disponible */
+                    <div className="absolute inset-0 flex items-center justify-center bg-muted/20">
+                        <Package className="h-10 w-10 text-muted-foreground/30" />
+                    </div>
+                )}
 
                 {/* Stock badge */}
                 <div className="absolute top-2 left-2">
@@ -102,15 +122,6 @@ export function ProductCard({ product, onClick, onLongPress }: ProductCardProps)
                         {status === "ok" ? `${product.stock}` : label}
                     </span>
                 </div>
-
-                {/* Popular badge */}
-                {product.popular && !isOutOfStock && (
-                    <div className="absolute top-2 right-2">
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary text-primary-foreground leading-none">
-                            ★ Populaire
-                        </span>
-                    </div>
-                )}
 
                 {/* Add overlay on hover */}
                 {!isOutOfStock && (
@@ -126,9 +137,11 @@ export function ProductCard({ product, onClick, onLongPress }: ProductCardProps)
 
             {/* Info area */}
             <div className="flex-1 p-2.5 flex flex-col gap-1">
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wide leading-none font-medium truncate">
-                    {product.category}
-                </p>
+                {product.category && (
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wide leading-none font-medium truncate">
+                        {product.category}
+                    </p>
+                )}
                 <h3 className="font-semibold text-sm leading-tight line-clamp-2 text-foreground">
                     {product.name}
                 </h3>
@@ -137,10 +150,9 @@ export function ProductCard({ product, onClick, onLongPress }: ProductCardProps)
                         {product.price.toLocaleString()}
                         <span className="text-[10px] font-medium text-muted-foreground ml-0.5">FCFA</span>
                     </p>
-                    {product.unit && (
-                        <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
-                            <Package className="h-2.5 w-2.5" />
-                            {product.unit}
+                    {product.barcode && (
+                        <span className="text-[10px] text-muted-foreground truncate max-w-[60px]">
+                            {product.barcode}
                         </span>
                     )}
                 </div>

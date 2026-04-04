@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 interface MobilePaymentProps {
     onConfirm: () => void;
     onBack: () => void;
+    isSubmitting?: boolean;
 }
 
 type Operator = "orange" | "moov" | "mtn";
@@ -54,20 +55,15 @@ const operators: {
         },
     ];
 
-export function MobilePayment({ onConfirm, onBack }: MobilePaymentProps) {
+export function MobilePayment({ onConfirm, onBack, isSubmitting = false }: MobilePaymentProps) {
     const total = useCartStore((state) => state.total);
     const [operator, setOperator] = useState<Operator | null>(null);
     const [phone, setPhone] = useState("");
-    const [isProcessing, setIsProcessing] = useState(false);
 
     const isValid = !!operator && phone.replace(/\D/g, "").length >= 8;
 
     const handleConfirm = () => {
-        setIsProcessing(true);
-        setTimeout(() => {
-            setIsProcessing(false);
-            onConfirm();
-        }, 2000);
+        onConfirm();
     };
 
     return (
@@ -132,7 +128,7 @@ export function MobilePayment({ onConfirm, onBack }: MobilePaymentProps) {
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
                         className="pl-9 h-12 text-base font-medium tracking-widest"
-                        disabled={isProcessing}
+                        disabled={isSubmitting}
                         aria-label="Numéro de téléphone Mobile Money"
                     />
                 </div>
@@ -141,20 +137,7 @@ export function MobilePayment({ onConfirm, onBack }: MobilePaymentProps) {
                 )}
             </div>
 
-            {/* Processing indicator */}
-            {isProcessing && (
-                <div className="flex items-center gap-3 p-4 rounded-xl bg-orange-50 dark:bg-orange-950/30 border border-orange-200 animate-pulse">
-                    <Loader2 className="h-5 w-5 text-orange-500 animate-spin" />
-                    <div>
-                        <p className="font-semibold text-sm text-orange-700 dark:text-orange-400">
-                            Demande envoyée…
-                        </p>
-                        <p className="text-xs text-orange-600 dark:text-orange-500">
-                            Le client doit valider sur son téléphone.
-                        </p>
-                    </div>
-                </div>
-            )}
+
 
             {/* Actions */}
             <div className="flex gap-3">
@@ -162,26 +145,20 @@ export function MobilePayment({ onConfirm, onBack }: MobilePaymentProps) {
                     variant="outline"
                     className="flex-1 cursor-pointer"
                     onClick={onBack}
-                    disabled={isProcessing}
+                    disabled={isSubmitting}
                 >
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Retour
                 </Button>
                 <Button
                     className="flex-1 h-12 font-bold cursor-pointer"
-                    disabled={!isValid || isProcessing}
+                    disabled={!isValid || isSubmitting}
                     onClick={handleConfirm}
                 >
-                    {isProcessing ? (
-                        <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            En cours…
-                        </>
+                    {isSubmitting ? (
+                        <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Enregistrement…</>
                     ) : (
-                        <>
-                            <CheckCircle2 className="mr-2 h-4 w-4" />
-                            Envoyer la demande
-                        </>
+                        <><CheckCircle2 className="mr-2 h-4 w-4" />Envoyer la demande</>
                     )}
                 </Button>
             </div>

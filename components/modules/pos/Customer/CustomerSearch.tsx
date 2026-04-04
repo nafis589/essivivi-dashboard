@@ -9,39 +9,62 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, UserPlus2, User, Phone, Star } from "lucide-react";
-import { useState, useMemo } from "react";
-import { MOCK_CUSTOMERS } from "@/lib/mock-data/pos";
-import { Customer } from "@/lib/types/pos";
+import { Search, UserPlus2, User, Phone, Loader2 } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { searchPOSCustomers } from "@/lib/modules/pos/api";
+import type { POSCustomer } from "@/lib/types/pos.types";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { QuickCustomerForm } from "./QuickCustomerForm";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 interface CustomerSearchProps {
     isOpen: boolean;
     onClose: () => void;
-    onSelect: (customer: Customer) => void;
+    onSelect: (customer: POSCustomer) => void;
 }
 
 export function CustomerSearch({ isOpen, onClose, onSelect }: CustomerSearchProps) {
     const [searchTerm, setSearchTerm] = useState("");
     const [isCreating, setIsCreating] = useState(false);
+    const [customers, setCustomers] = useState<POSCustomer[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
 
-    const filteredCustomers = useMemo(() => {
-        if (!searchTerm) return MOCK_CUSTOMERS;
-        const lower = searchTerm.toLowerCase();
-        return MOCK_CUSTOMERS.filter(
-            (c) =>
-                c.name.toLowerCase().includes(lower) ||
-                c.phone?.includes(searchTerm) ||
-                c.email?.toLowerCase().includes(lower)
-        );
-    }, [searchTerm]);
+    // Charger les clients depuis l'API
+    const loadCustomers = useCallback(async (search: string) => {
+        setIsLoading(true);
+        try {
+            const response = await searchPOSCustomers({
+                search: search || undefined,
+                limit: 30,
+            });
+            let rawData: any[] = [];
+            if (response && (response as any).data && Array.isArray((response as any).data.customers)) {
+                rawData = (response as any).data.customers;
+            } else if (response && Array.isArray((response as any).data)) {
+                rawData = (response as any).data;
+            } else if (Array.isArray(response)) {
+                rawData = response;
+            }
+            setCustomers(rawData as POSCustomer[]);
+        } catch {
+            setCustomers([]);
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
 
-    const handleCreateCustomer = (data: Omit<Customer, "id">) => {
-        const customer: Customer = { ...data, id: Date.now() };
-        MOCK_CUSTOMERS.push(customer);
+    // Chargement initial + debounce sur la recherche
+    useEffect(() => {
+        if (!isOpen || isCreating) return;
+
+        const timer = setTimeout(() => {
+            loadCustomers(searchTerm);
+        }, 300);
+
+        return () => clearTimeout(timer);
+    }, [searchTerm, isOpen, isCreating, loadCustomers]);
+
+    const handleCustomerCreated = (customer: POSCustomer) => {
         onSelect(customer);
         setIsCreating(false);
     };
@@ -51,13 +74,14 @@ export function CustomerSearch({ isOpen, onClose, onSelect }: CustomerSearchProp
             onClose();
             setSearchTerm("");
             setIsCreating(false);
+            setCustomers([]);
         }
     };
 
     return (
         <Dialog open={isOpen} onOpenChange={handleOpenChange}>
             <DialogContent className="sm:max-w-md p-0 gap-0 overflow-hidden">
-                <DialogHeader className="px-5 pt-5 pb-3 border-b">
+                <DialogHeader className="px-5 pt-5 pb-3">
                     <DialogTitle className="flex items-center gap-2 text-base">
                         <User className="h-4 w-4 text-primary" />
                         {isCreating ? "Nouveau client" : "Rechercher un client"}
@@ -65,7 +89,7 @@ export function CustomerSearch({ isOpen, onClose, onSelect }: CustomerSearchProp
                     <DialogDescription className="text-xs">
                         {isCreating
                             ? "Remplissez le formulaire pour créer un nouveau client."
-                            : "Recherchez par nom ou téléphone, ou créez un nouveau client."}
+                            : "Recherchez par nom, téléphone ou email."}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -73,15 +97,19 @@ export function CustomerSearch({ isOpen, onClose, onSelect }: CustomerSearchProp
                     <div className="px-5 py-4">
                         <QuickCustomerForm
                             onCancel={() => setIsCreating(false)}
-                            onSubmit={handleCreateCustomer}
+                            onCreated={handleCustomerCreated}
                         />
                     </div>
                 ) : (
                     <div className="flex flex-col">
                         {/* Search input */}
-                        <div className="px-4 py-3 border-b">
+                        <div className="px-4 py-3">
                             <div className="relative">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                                {isLoading ? (
+                                    <Loader2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground animate-spin pointer-events-none" />
+                                ) : (
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                                )}
                                 <Input
                                     placeholder="Nom, téléphone, email…"
                                     className="pl-9 h-10 text-sm"
@@ -94,7 +122,7 @@ export function CustomerSearch({ isOpen, onClose, onSelect }: CustomerSearchProp
                         </div>
 
                         {/* Create new customer */}
-                        <div className="px-4 py-2 border-b bg-muted/20">
+                        <div className="px-4 py-2 bg-muted/20">
                             <Button
                                 variant="ghost"
                                 className="w-full justify-start h-9 text-primary hover:text-primary hover:bg-primary/5 text-sm cursor-pointer"
@@ -108,13 +136,20 @@ export function CustomerSearch({ isOpen, onClose, onSelect }: CustomerSearchProp
                         {/* Customers list */}
                         <ScrollArea className="h-60">
                             <div className="p-2 space-y-0.5">
-                                {filteredCustomers.length === 0 ? (
+                                {isLoading ? (
+                                    <div className="py-10 flex flex-col items-center justify-center text-muted-foreground gap-2">
+                                        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground/50" />
+                                        <p className="text-sm">Recherche en cours…</p>
+                                    </div>
+                                ) : customers.length === 0 ? (
                                     <div className="py-10 flex flex-col items-center justify-center text-muted-foreground gap-2">
                                         <User className="h-8 w-8 text-muted-foreground/30" />
-                                        <p className="text-sm">Aucun client trouvé</p>
+                                        <p className="text-sm">
+                                            {searchTerm ? "Aucun client trouvé" : "Aucun client enregistré"}
+                                        </p>
                                     </div>
                                 ) : (
-                                    filteredCustomers.map((customer) => (
+                                    customers.map((customer) => (
                                         <button
                                             key={customer.id}
                                             className={cn(
@@ -139,17 +174,12 @@ export function CustomerSearch({ isOpen, onClose, onSelect }: CustomerSearchProp
                                                         <span className="text-xs text-muted-foreground">{customer.phone}</span>
                                                     </div>
                                                 )}
+                                                {customer.totalPurchases !== undefined && customer.totalPurchases > 0 && (
+                                                    <p className="text-[11px] text-muted-foreground mt-0.5">
+                                                        {customer.totalPurchases} achat{customer.totalPurchases > 1 ? "s" : ""} • {(customer.totalSpent ?? 0).toLocaleString()} FCFA
+                                                    </p>
+                                                )}
                                             </div>
-
-                                            {customer.points !== undefined && customer.points > 0 && (
-                                                <Badge
-                                                    variant="secondary"
-                                                    className="text-[10px] font-bold gap-1 shrink-0"
-                                                >
-                                                    <Star className="h-2.5 w-2.5 text-amber-500 fill-amber-500" />
-                                                    {customer.points}
-                                                </Badge>
-                                            )}
                                         </button>
                                     ))
                                 )}

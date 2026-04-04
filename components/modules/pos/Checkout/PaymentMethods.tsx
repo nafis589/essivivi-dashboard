@@ -1,6 +1,6 @@
 "use client";
 
-import { PaymentMethod } from "@/lib/types/pos";
+import type { PaymentMethod } from "@/lib/types/pos.types";
 import { Button } from "@/components/ui/button";
 import { CreditCard, Banknote, Smartphone, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -15,7 +15,7 @@ const methods: {
     borderColor: string;
 }[] = [
         {
-            key: "cash",
+            key: "CASH",
             label: "Espèces",
             sublabel: "Paiement en numéraire",
             Icon: Banknote,
@@ -24,7 +24,7 @@ const methods: {
             borderColor: "border-emerald-200 dark:border-emerald-800",
         },
         {
-            key: "mobile",
+            key: "MOBILE_MONEY",
             label: "Mobile Money",
             sublabel: "Orange / Moov / MTN",
             Icon: Smartphone,
@@ -33,7 +33,7 @@ const methods: {
             borderColor: "border-orange-200 dark:border-orange-800",
         },
         {
-            key: "card",
+            key: "CARD",
             label: "Carte bancaire",
             sublabel: "Visa / Mastercard / TPE",
             Icon: CreditCard,
