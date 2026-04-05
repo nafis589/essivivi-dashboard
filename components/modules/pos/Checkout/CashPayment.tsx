@@ -82,24 +82,6 @@ export function CashPayment({ onConfirm, onBack, isSubmitting = false }: CashPay
                 </div>
             </div>
 
-            {/* Quick amount buttons */}
-            <div className="space-y-1.5">
-                <p className="text-xs text-muted-foreground font-medium">Montants rapides</p>
-                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-                    {quickAmounts.map((amount) => (
-                        <Button
-                            key={amount}
-                            variant={receivedNum === amount ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => setReceived(amount.toString())}
-                            className="h-9 text-xs font-semibold tabular-nums cursor-pointer transition-all"
-                        >
-                            {amount >= 1000 ? `${amount / 1000}k` : amount} F
-                        </Button>
-                    ))}
-                </div>
-            </div>
-
             {/* Change display */}
             <div
                 className={cn(

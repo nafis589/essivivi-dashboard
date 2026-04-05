@@ -5,8 +5,6 @@ import { useState } from "react";
 import type { PaymentMethod, SaleRecord } from "@/lib/types/pos.types";
 import { PaymentMethods } from "./PaymentMethods";
 import { CashPayment } from "./CashPayment";
-import { MobilePayment } from "./MobilePayment";
-import { CardPayment } from "./CardPayment";
 import { Receipt } from "./Receipt";
 import { useCartStore } from "@/lib/store/useCartStore";
 import { createPOSSale } from "@/lib/modules/pos/api";
@@ -124,7 +122,7 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
             >
                 <DialogTitle className="sr-only">Paiement</DialogTitle>
                 {/* Step indicator header */}
-                <div className="shrink-0 px-6 pt-5 pb-4 border-b bg-card">
+                <div className="shrink-0 px-6 pt-5 pb-4 bg-card">
                     <div className="flex items-center justify-between mb-3">
                         <h2 className="font-bold text-lg">
                             {step === "method" && "Mode de paiement"}
@@ -186,20 +184,6 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
                         <>
                             {method === "CASH" && (
                                 <CashPayment
-                                    onConfirm={handlePaymentConfirm}
-                                    onBack={handleBack}
-                                    isSubmitting={isSubmitting}
-                                />
-                            )}
-                            {method === "MOBILE_MONEY" && (
-                                <MobilePayment
-                                    onConfirm={handlePaymentConfirm}
-                                    onBack={handleBack}
-                                    isSubmitting={isSubmitting}
-                                />
-                            )}
-                            {method === "CARD" && (
-                                <CardPayment
                                     onConfirm={handlePaymentConfirm}
                                     onBack={handleBack}
                                     isSubmitting={isSubmitting}

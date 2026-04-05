@@ -1,7 +1,6 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { UserMenu } from '../navigation/UserMenu'
 import { useSidebarStore } from '@/lib/store/useSidebarStore'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { cn } from '@/lib/utils'
@@ -16,13 +15,6 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 
-// Mock user data
-const mockUser = {
-  id: '1',
-  name: 'Marie Dupont',
-  email: 'marie@flowcommerce.fr',
-  company: 'Boulangerie du Coin',
-}
 
 // Page titles mapping
 const pageTitles: Record<string, { title: string; subtitle?: string }> = {
@@ -111,13 +103,6 @@ export function Header({ pathname }: HeaderProps) {
           )}
         </Button>
 
-        {/* Divider */}
-        <div className="h-4 w-px bg-slate-200 hidden md:block mx-0.5" />
-
-        {/* User menu */}
-        <div className="hidden md:block">
-          <UserMenu user={mockUser} />
-        </div>
       </div>
     </header>
   )
